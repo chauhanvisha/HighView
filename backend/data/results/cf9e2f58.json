@@ -1,0 +1,21 @@
+{
+  "video_id": "cf9e2f58",
+  "session_title": "Test Class Session",
+  "processed_at": "2026-05-03T10:08:30.113524",
+  "duration_seconds": 2560.6,
+  "processing_time_seconds": 16.7,
+  "frames_sampled": 1281,
+  "enrolled_students": 0,
+  "attendance": {
+    "count": 0,
+    "total": 0,
+    "rate": 0.0,
+    "accuracy": 95.0
+  },
+  "engagement": {
+    "average_score": 0.0,
+    "at_risk_count": 0
+  },
+  "present_students": [],
+  "absent_students": []
+}

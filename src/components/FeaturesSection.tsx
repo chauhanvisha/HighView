@@ -6,7 +6,7 @@ const features = [
   {
     icon: Clock,
     title: 'Real-Time Attendance',
-    description: 'Automated attendance tracking with QR codes and facial recognition. Mark attendance in seconds with 99.9% accuracy.',
+    description: 'Automated attendance tracking with QR codes and facial recognition. Mark attendance in seconds with 95%+ accuracy.',
     gradient: 'from-blue-500 to-cyan-500',
   },
   {

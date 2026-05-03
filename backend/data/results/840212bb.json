@@ -1,0 +1,64 @@
+{
+  "video_id": "840212bb",
+  "session_title": "GitLab Dev Session",
+  "processed_at": "2026-05-03T10:31:03.763679",
+  "duration_seconds": 2560.6,
+  "processing_time_seconds": 17.3,
+  "frames_sampled": 1281,
+  "enrolled_students": 7,
+  "attendance": {
+    "count": 0,
+    "total": 7,
+    "rate": 0.0,
+    "accuracy": null
+  },
+  "engagement": {
+    "average_score": 0.0,
+    "at_risk_count": 0
+  },
+  "present_students": [],
+  "absent_students": [
+    {
+      "student_id": "STU028",
+      "name": "Tarang Goyal",
+      "frames_detected": 0,
+      "status": "absent"
+    },
+    {
+      "student_id": "STU001",
+      "name": "Alex Rivera",
+      "frames_detected": 0,
+      "status": "absent"
+    },
+    {
+      "student_id": "STU002",
+      "name": "Priya Sharma",
+      "frames_detected": 0,
+      "status": "absent"
+    },
+    {
+      "student_id": "STU003",
+      "name": "Jordan Williams",
+      "frames_detected": 0,
+      "status": "absent"
+    },
+    {
+      "student_id": "STU004",
+      "name": "Marcus Thompson",
+      "frames_detected": 0,
+      "status": "absent"
+    },
+    {
+      "student_id": "STU005",
+      "name": "Sarah Mitchell",
+      "frames_detected": 0,
+      "status": "absent"
+    },
+    {
+      "student_id": "STU007",
+      "name": "Ethan Brooks",
+      "frames_detected": 0,
+      "status": "absent"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "video_id": "959f3ceb",
+  "session_title": "Test Class Session",
+  "processed_at": "2026-05-03T10:15:29.041171",
+  "duration_seconds": 2560.6,
+  "processing_time_seconds": 17.1,
+  "frames_sampled": 1281,
+  "enrolled_students": 1,
+  "attendance": {
+    "count": 0,
+    "total": 1,
+    "rate": 0.0,
+    "accuracy": 95.0
+  },
+  "engagement": {
+    "average_score": 0.0,
+    "at_risk_count": 0
+  },
+  "present_students": [],
+  "absent_students": [
+    {
+      "student_id": "STU028",
+      "name": "Tarang Goyal",
+      "frames_detected": 0,
+      "status": "absent"
+    }
+  ]
+}

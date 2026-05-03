@@ -7,10 +7,11 @@ import StatsSection from '../components/StatsSection'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { BarChart3, Users, TrendingUp, Clock, Award, Target, MessageCircle, X } from 'lucide-react'
+import { realStudents } from '../data/transformStudents'
 
 // FAQ Responses
 const FAQ_RESPONSES: Record<string, string> = {
-  'how does it work': '🎥 HighView uses AI to automatically track attendance from classroom videos!\n\nHere\'s the process:\n1. Upload a classroom video to S3\n2. Our system detects and recognizes student faces\n3. We track engagement, speaking time, and attendance\n4. View results in real-time dashboards\n\nPowered by AWS Rekognition and Claude AI! 🤖',
+  'how does it work': '🎥 HighView uses AI to automatically track attendance from classroom videos!\n\nHere\'s the process:\n1. Upload a classroom video\n2. Our face recognition AI detects and recognizes student faces\n3. We track engagement, speaking time, and attendance\n4. View results in real-time dashboards\n\nPowered by local face recognition AI and Claude AI! 🤖',
   'pricing': '💰 Simple, transparent pricing:\n\n🆓 Free Tier: Up to 100 students, 10 hours of video per month\n⭐ Pro ($49/month): Up to 500 students, unlimited video processing\n🏢 Enterprise (Custom): Unlimited students, dedicated support\n\nTry free tier - no credit card required!',
   'features': '✨ Key Features:\n\n📊 Attendance Tracking: 95%+ accuracy\n🎯 Engagement Scoring: Head orientation analysis\n🗣️ Speaking Time: Participation analytics\n🤖 AI Analytics: Ask questions about your data\n📈 Real-time Dashboards: Live updates',
   'get started': '🚀 Getting Started is Easy!\n\n1️⃣ Sign Up: Create free account\n2️⃣ Upload Student Photos: JPG or PNG format\n3️⃣ Upload Classroom Video: MP4 format\n4️⃣ View Results: Check dashboard in 5-15 minutes\n\n📧 Need help? demo@highview.com',
@@ -316,8 +317,6 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
   const [user, setUser] = useState<any>(null)
-  const [selectedClass, setSelectedClass] = useState('all')
-  const [expandedClass, setExpandedClass] = useState<string | null>(null)
 
   useEffect(() => {
     const checkAuth = () => {
@@ -400,62 +399,6 @@ export default function HomePage() {
 
   // Teacher Dashboard
   if (userRole === 'teacher') {
-    const classes = [
-      {
-        id: 'COEN233',
-        name: 'Networking',
-        code: 'COEN233',
-        students: 52,
-        attendance: 94,
-        engagement: 89,
-        schedule: 'MWF 10:00-11:00',
-        room: 'ENGR205',
-        topStudents: ['Katie Sharma', 'John Doe', 'Sarah Chen'],
-        recentActivities: [
-          'Quiz 3 completed - Avg: 87%',
-          'Katie Sharma submitted assignment',
-          'Class discussion: DHT Protocol'
-        ]
-      },
-      {
-        id: 'CS101',
-        name: 'Data Structures',
-        code: 'CS101',
-        students: 48,
-        attendance: 91,
-        engagement: 85,
-        schedule: 'TTh 2:00-3:30',
-        room: 'CS Building 301',
-        topStudents: ['Alex Johnson', 'Maria Garcia', 'David Lee'],
-        recentActivities: [
-          'Lab 5 submissions due today',
-          'Midterm grades posted',
-          'New assignment: Binary Trees'
-        ]
-      },
-      {
-        id: 'CS201',
-        name: 'Algorithms',
-        code: 'CS201',
-        students: 56,
-        attendance: 88,
-        engagement: 92,
-        schedule: 'MWF 1:00-2:00',
-        room: 'CS Building 205',
-        topStudents: ['Emily Wang', 'Michael Brown', 'Lisa Park'],
-        recentActivities: [
-          'Dynamic Programming lecture',
-          'Assignment 4 graded',
-          'Office hours: Friday 3-5pm'
-        ]
-      }
-    ]
-
-    const selectedClassData = selectedClass === 'all' ? null : classes.find(c => c.id === selectedClass)
-    const totalStudents = classes.reduce((sum, c) => sum + c.students, 0)
-    const avgAttendance = Math.round(classes.reduce((sum, c) => sum + c.attendance, 0) / classes.length)
-    const avgEngagement = Math.round(classes.reduce((sum, c) => sum + c.engagement, 0) / classes.length)
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
         <div className="container mx-auto px-4">
@@ -466,262 +409,86 @@ export default function HomePage() {
             className="mb-8"
           >
             <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
-            <p className="text-muted-foreground">Welcome back, {user?.name}! Here's an overview of your classes.</p>
+            <p className="text-muted-foreground">Welcome back, {user?.name}! Here's an overview of your cohort.</p>
           </motion.div>
 
-          {/* Class Selector */}
+          {/* Real student count stat */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Total Students</p>
+                    <p className="text-3xl font-bold">{realStudents.length}</p>
+                    <p className="text-xs text-muted-foreground mt-1">2026-27 College Cohort</p>
+                  </div>
+                  <div className="bg-blue-50 p-3 rounded-full">
+                    <Users className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Avg Attendance</p>
+                    <p className="text-3xl font-bold">—</p>
+                    <p className="text-xs text-muted-foreground mt-1">Available after sessions start</p>
+                  </div>
+                  <div className="bg-purple-50 p-3 rounded-full">
+                    <Clock className="h-6 w-6 text-purple-600" />
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Card className="p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Avg Engagement</p>
+                    <p className="text-3xl font-bold">—</p>
+                    <p className="text-xs text-muted-foreground mt-1">Available after sessions start</p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded-full">
+                    <TrendingUp className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+
+          {/* Link to full student list */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-8"
+            transition={{ delay: 0.4 }}
           >
-            <Card className="p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <Card className="p-6">
+              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold">Select Class/Course</h3>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => setSelectedClass('all')}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                    selectedClass === 'all'
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'bg-muted hover:bg-muted/80'
-                  }`}
-                >
-                  All Classes
-                </button>
-                {classes.map((cls) => (
-                  <button
-                    key={cls.id}
-                    onClick={() => setSelectedClass(cls.id)}
-                    className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                      selectedClass === cls.id
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'bg-muted hover:bg-muted/80'
-                    }`}
-                  >
-                    {cls.name} - {cls.code}
-                  </button>
-                ))}
-              </div>
+                HighView Cohort
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {realStudents.length} students enrolled. Class sessions have not started yet — attendance and engagement data will populate once recordings are processed.
+              </p>
+              <Link to="/students">
+                <Button>View All Students</Button>
+              </Link>
             </Card>
           </motion.div>
-
-          {/* Overall Stats or Class-Specific Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[
-              { 
-                icon: Users, 
-                label: 'Total Students', 
-                value: selectedClassData ? selectedClassData.students : totalStudents, 
-                color: 'text-blue-600', 
-                bg: 'bg-blue-50' 
-              },
-              { 
-                icon: Clock, 
-                label: 'Avg Attendance', 
-                value: `${selectedClassData ? selectedClassData.attendance : avgAttendance}%`, 
-                color: 'text-purple-600', 
-                bg: 'bg-purple-50' 
-              },
-              { 
-                icon: TrendingUp, 
-                label: 'Avg Engagement', 
-                value: `${selectedClassData ? selectedClassData.engagement : avgEngagement}%`, 
-                color: 'text-green-600', 
-                bg: 'bg-green-50' 
-              },
-              { 
-                icon: Award, 
-                label: selectedClassData ? 'Top Students' : 'Total Classes', 
-                value: selectedClassData ? selectedClassData.topStudents.length : classes.length, 
-                color: 'text-amber-600', 
-                bg: 'bg-amber-50' 
-              },
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + index * 0.1 }}
-              >
-                <Card className="p-6 hover:shadow-lg transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                      <p className="text-3xl font-bold">{stat.value}</p>
-                    </div>
-                    <div className={`${stat.bg} p-3 rounded-full`}>
-                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Class Details */}
-          {selectedClass === 'all' ? (
-            // Show all classes
-            <div className="space-y-6">
-              {classes.map((cls, index) => (
-                <motion.div
-                  key={cls.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                >
-                  <Card className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-2xl font-bold mb-1">{cls.name} - {cls.code}</h3>
-                        <p className="text-sm text-muted-foreground">{cls.schedule} • {cls.room}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">{cls.students}</p>
-                        <p className="text-xs text-muted-foreground">Students</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Attendance</p>
-                        <p className="text-2xl font-bold text-purple-600">{cls.attendance}%</p>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Engagement</p>
-                        <p className="text-2xl font-bold text-green-600">{cls.engagement}%</p>
-                      </div>
-                      <div className="bg-amber-50 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Top Performers</p>
-                        <p className="text-2xl font-bold text-amber-600">{cls.topStudents.length}</p>
-                      </div>
-                    </div>
-
-                    {expandedClass === cls.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 pt-4 border-t"
-                      >
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="font-semibold mb-3 flex items-center gap-2">
-                              <Award className="h-4 w-4 text-amber-600" />
-                              Top Performing Students
-                            </h4>
-                            <div className="space-y-2">
-                              {cls.topStudents.map((student, i) => (
-                                <div key={i} className="flex items-center gap-3 p-2 bg-muted/50 rounded">
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-sm">
-                                    {i + 1}
-                                  </div>
-                                  <span>{student}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold mb-3 flex items-center gap-2">
-                              <Target className="h-4 w-4 text-primary" />
-                              Recent Activities
-                            </h4>
-                            <div className="space-y-2">
-                              {cls.recentActivities.map((activity, i) => (
-                                <div key={i} className="flex items-start gap-2 p-2 bg-muted/50 rounded">
-                                  <div className="h-2 w-2 rounded-full bg-primary mt-2" />
-                                  <span className="text-sm">{activity}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    <div className="flex gap-3 mt-4">
-                      <Button
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => setExpandedClass(expandedClass === cls.id ? null : cls.id)}
-                      >
-                        {expandedClass === cls.id ? 'Hide Details' : 'View Details'}
-                      </Button>
-                      <Link to={`/students?class=${cls.id}`} className="flex-1">
-                        <Button className="w-full">
-                          View All Students
-                        </Button>
-                      </Link>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            // Show selected class details
-            selectedClassData && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-              >
-                <Card className="p-8">
-                  <div className="flex items-start justify-between mb-6">
-                    <div>
-                      <h2 className="text-3xl font-bold mb-2">{selectedClassData.name} - {selectedClassData.code}</h2>
-                      <p className="text-muted-foreground">{selectedClassData.schedule} • {selectedClassData.room}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-4xl font-bold text-primary">{selectedClassData.students}</p>
-                      <p className="text-sm text-muted-foreground">Students Enrolled</p>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        <Award className="h-5 w-5 text-amber-600" />
-                        Top Performing Students
-                      </h3>
-                      <div className="space-y-3">
-                        {selectedClassData.topStudents.map((student, i) => (
-                          <div key={i} className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg">
-                            <div className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center font-bold">
-                              {i + 1}
-                            </div>
-                            <span className="font-medium">{student}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-4 flex items-center gap-2">
-                        <Target className="h-5 w-5 text-primary" />
-                        Recent Activities
-                      </h3>
-                      <div className="space-y-3">
-                        {selectedClassData.recentActivities.map((activity, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="h-2 w-2 rounded-full bg-primary mt-2" />
-                            <span className="text-sm">{activity}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Link to={`/students?class=${selectedClassData.id}`}>
-                    <Button className="w-full" size="lg">
-                      View All Students in {selectedClassData.code}
-                    </Button>
-                  </Link>
-                </Card>
-              </motion.div>
-            )
-          )}
         </div>
         <TeacherAIChatbot />
       </div>
@@ -744,10 +511,10 @@ export default function HomePage() {
         {/* Student Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[
-            { icon: TrendingUp, label: 'My Engagement', value: '85%', color: 'text-green-600', bg: 'bg-green-50' },
-            { icon: Clock, label: 'Attendance Rate', value: '92%', color: 'text-blue-600', bg: 'bg-blue-50' },
-            { icon: Award, label: 'Current Grade', value: 'A-', color: 'text-amber-600', bg: 'bg-amber-50' },
-            { icon: Target, label: 'Assignments', value: '8/10', color: 'text-purple-600', bg: 'bg-purple-50' },
+            { icon: TrendingUp, label: 'My Engagement', value: '—', color: 'text-green-600', bg: 'bg-green-50' },
+            { icon: Clock, label: 'Attendance Rate', value: '—', color: 'text-blue-600', bg: 'bg-blue-50' },
+            { icon: Award, label: 'Current Grade', value: '—', color: 'text-amber-600', bg: 'bg-amber-50' },
+            { icon: Target, label: 'Sessions Attended', value: '—', color: 'text-purple-600', bg: 'bg-purple-50' },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -760,6 +527,7 @@ export default function HomePage() {
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
                     <p className="text-3xl font-bold">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Available after sessions start</p>
                   </div>
                   <div className={`${stat.bg} p-3 rounded-full`}>
                     <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -777,23 +545,7 @@ export default function HomePage() {
               <BarChart3 className="h-5 w-5 text-primary" />
               My Courses
             </h3>
-            <div className="space-y-4">
-              {[
-                { name: 'Networking - COEN233', grade: '92%', status: 'On Track' },
-                { name: 'Data Structures - CS101', grade: '88%', status: 'Good' },
-                { name: 'Algorithms - CS201', grade: '95%', status: 'Excellent' },
-              ].map((course) => (
-                <div key={course.name} className="p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">{course.name}</span>
-                    <span className="text-sm font-semibold text-green-600">{course.grade}</span>
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: course.grade }} />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-muted-foreground text-sm">Course data will appear once sessions are processed.</p>
           </Card>
 
           <Card className="p-6">
@@ -801,24 +553,7 @@ export default function HomePage() {
               <Target className="h-5 w-5 text-primary" />
               Upcoming Tasks
             </h3>
-            <div className="space-y-3">
-              {[
-                { task: 'Submit CS101 Assignment', due: 'Due Tomorrow', urgent: true },
-                { task: 'Prepare for Networking Quiz', due: 'Due in 3 days', urgent: false },
-                { task: 'Review Algorithms Notes', due: 'Due in 5 days', urgent: false },
-              ].map((item, i) => (
-                <div key={i} className={`p-3 rounded-lg ${
-                  item.urgent ? 'bg-red-50 border border-red-200' : 'bg-muted/50'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{item.task}</span>
-                    <span className={`text-xs ${
-                      item.urgent ? 'text-red-600 font-semibold' : 'text-muted-foreground'
-                    }`}>{item.due}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-muted-foreground text-sm">No upcoming tasks at this time.</p>
           </Card>
         </div>
       </div>

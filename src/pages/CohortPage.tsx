@@ -1,24 +1,12 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Download, Search, ChevronDown, X } from 'lucide-react'
 import { Button } from '../components/ui/button'
-import { cohortStudents } from '../data/transformStudents'
+import { cohortStudents, realStudents } from '../data/transformStudents'
 
 // ── Real data from students.json ──────────────────────────────────────────────
 
 const SEMESTERS = ['Spring 2026', 'Fall 2025', 'Summer 2025', 'Spring 2025']
-
-const PILLARS = {
-  ai: { score: 64, completed: 41, inProgress: 30, notStarted: 23 },
-  experiential: { score: 51, completed: 30, inProgress: 36, notStarted: 28 },
-  session: { score: 72, completed: 52, inProgress: 26, notStarted: 16 },
-}
-
-const ALERTS = [
-  { id: 1, color: 'bg-red-500', text: "4 students haven't logged in for 30+ days", sub: 'Re-engagement outreach recommended' },
-  { id: 2, color: 'bg-amber-600', text: '7 students at networking stage with no events booked', sub: 'Curated Connections — Apr 4 has open spots' },
-  { id: 3, color: 'bg-indigo-600', text: "Crocs micro-internship closes Apr 15 — 3 eligible students haven't applied", sub: 'Prompt to apply' },
-]
 
 interface Student {
   id: string
@@ -200,6 +188,83 @@ export default function CohortPage() {
   const [statusFilter, setStatusFilter] = useState('All status')
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
+  const totalStudents = realStudents.length
+
+  // Calculate engagement rate from real data (students with engagementScore > 0)
+  const avgEngagementRate = useMemo(() => {
+    const withData = realStudents.filter(s => s.engagementScore > 0)
+    if (withData.length === 0) return null
+    const avg = withData.reduce((sum, s) => sum + s.engagementScore, 0) / withData.length
+    return Math.round(avg)
+  }, [])
+
+  // At-risk: students with engagementScore < 30 (excluding not-started)
+  const atRiskCount = useMemo(() =>
+    realStudents.filter(s => s.engagementScore > 0 && s.engagementScore < 30).length
+  , [])
+
+  // Not started: attendanceRate === 0
+  const notStartedCount = useMemo(() =>
+    realStudents.filter(s => s.attendanceRate === 0).length
+  , [])
+
+  // Pillars calculated from real data
+  const PILLARS = useMemo(() => {
+    const total = realStudents.length
+    // Session attendance pillar: based on attendanceRate
+    const sessionCompleted = realStudents.filter(s => s.attendanceRate >= 75).length
+    const sessionInProgress = realStudents.filter(s => s.attendanceRate > 0 && s.attendanceRate < 75).length
+    const sessionNotStarted = realStudents.filter(s => s.attendanceRate === 0).length
+    const sessionScore = total > 0
+      ? Math.round(realStudents.reduce((sum, s) => sum + s.attendanceRate, 0) / total)
+      : 0
+
+    // Engagement (AI) pillar: based on engagementScore
+    const aiCompleted = realStudents.filter(s => s.engagementScore >= 75).length
+    const aiInProgress = realStudents.filter(s => s.engagementScore > 0 && s.engagementScore < 75).length
+    const aiNotStarted = realStudents.filter(s => s.engagementScore === 0).length
+    const aiScore = total > 0
+      ? Math.round(realStudents.reduce((sum, s) => sum + s.engagementScore, 0) / total)
+      : 0
+
+    // Experiential: sessions attended as proxy
+    const expCompleted = realStudents.filter(s => s.sessionsAttended >= 3).length
+    const expInProgress = realStudents.filter(s => s.sessionsAttended > 0 && s.sessionsAttended < 3).length
+    const expNotStarted = realStudents.filter(s => s.sessionsAttended === 0).length
+    const maxSessions = Math.max(...realStudents.map(s => s.totalSessions), 1)
+    const expScore = total > 0
+      ? Math.round(realStudents.reduce((sum, s) => sum + (s.totalSessions > 0 ? (s.sessionsAttended / s.totalSessions) * 100 : 0), 0) / total)
+      : 0
+
+    return {
+      ai: { score: aiScore, completed: aiCompleted, inProgress: aiInProgress, notStarted: aiNotStarted },
+      experiential: { score: expScore, completed: expCompleted, inProgress: expInProgress, notStarted: expNotStarted },
+      session: { score: sessionScore, completed: sessionCompleted, inProgress: sessionInProgress, notStarted: sessionNotStarted },
+    }
+  }, [])
+
+  // Real alerts from student data
+  const ALERTS = useMemo(() => {
+    const alerts: { id: number; color: string; text: string; sub: string }[] = []
+    if (notStartedCount > 0) {
+      alerts.push({
+        id: 1,
+        color: 'bg-red-500',
+        text: `${notStartedCount} student${notStartedCount !== 1 ? 's' : ''} have not started any sessions yet`,
+        sub: 'Sessions have not begun — no action needed until cohort kicks off',
+      })
+    }
+    if (atRiskCount > 0) {
+      alerts.push({
+        id: 2,
+        color: 'bg-amber-600',
+        text: `${atRiskCount} student${atRiskCount !== 1 ? 's' : ''} with engagement score below 30`,
+        sub: 'Consider re-engagement outreach',
+      })
+    }
+    return alerts
+  }, [notStartedCount, atRiskCount])
+
   const filtered = STUDENTS.filter(s => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase())
     const matchYear = yearFilter === 'All years' || s.year === yearFilter
@@ -219,7 +284,7 @@ export default function CohortPage() {
             <div>
               <h1 className="text-2xl font-bold">Cohort overview</h1>
               <p className="text-sm text-gray-500 mt-1">
-                {semester} · 94 active students · Greater Denver
+                {semester} · {totalStudents} students · Greater Denver
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -244,18 +309,18 @@ export default function CohortPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="bg-gray-50 rounded-xl p-5">
               <div className="text-sm text-gray-500 mb-2">Total students</div>
-              <div className="text-4xl font-bold">94</div>
-              <div className="text-sm text-green-600 mt-2">+12 vs last term</div>
+              <div className="text-4xl font-bold">{totalStudents}</div>
+              <div className="text-sm text-gray-400 mt-2">2026-27 College Cohort</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-5">
               <div className="text-sm text-gray-500 mb-2">Engagement rate</div>
-              <div className="text-4xl font-bold">78%</div>
-              <div className="text-sm text-green-600 mt-2">+5 pts vs last term</div>
+              <div className="text-4xl font-bold">{avgEngagementRate !== null ? `${avgEngagementRate}%` : '—'}</div>
+              <div className="text-sm text-gray-400 mt-2">{avgEngagementRate !== null ? 'Cohort average' : 'Available after sessions start'}</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-5">
               <div className="text-sm text-gray-500 mb-2">At-risk students</div>
-              <div className="text-4xl font-bold">11</div>
-              <div className="text-sm text-amber-600 mt-2">Needs follow-up</div>
+              <div className="text-4xl font-bold">{atRiskCount}</div>
+              <div className="text-sm text-gray-400 mt-2">{atRiskCount > 0 ? 'Engagement score below 30' : 'No at-risk students'}</div>
             </div>
           </div>
 
@@ -345,18 +410,22 @@ export default function CohortPage() {
           <div className="border rounded-xl p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Alerts & follow-ups</h2>
-              <span className="text-sm text-gray-400">{ALERTS.length * 3 + 2} flagged</span>
+              <span className="text-sm text-gray-400">{ALERTS.length} flagged</span>
             </div>
             <div className="divide-y">
-              {ALERTS.map(alert => (
-                <div key={alert.id} className="py-3 flex items-start gap-3">
-                  <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${alert.color}`} />
-                  <div>
-                    <div className="text-sm font-medium">{alert.text}</div>
-                    <div className="text-xs text-gray-400 mt-0.5">{alert.sub}</div>
+              {ALERTS.length === 0 ? (
+                <p className="text-sm text-gray-400 py-3">No alerts at this time.</p>
+              ) : (
+                ALERTS.map(alert => (
+                  <div key={alert.id} className="py-3 flex items-start gap-3">
+                    <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5 ${alert.color}`} />
+                    <div>
+                      <div className="text-sm font-medium">{alert.text}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">{alert.sub}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
