@@ -8,12 +8,6 @@ import { videoService, VideoUploadProgress, VideoAnalysisResult } from '../servi
 import { addToCalendar } from '../utils/calendarUtils'
 import { realStudents } from '../data/transformStudents'
 
-const quickActions = [
-  { title: 'Upload Recording', description: 'Process a new class video', icon: Upload, action: 'upload' },
-  { title: 'View Analytics', description: 'Check attendance trends', icon: Brain, action: 'analytics' },
-  { title: 'Manage Students', description: 'Update student roster', icon: Users, action: 'students' },
-]
-
 const recentActivities = [
   { event: 'Video Processed', detail: 'Data Science Workshop - 28 students detected', time: '2 hours ago' },
   { event: 'Session Created', detail: 'Web Development Q&A scheduled', time: '5 hours ago' },
@@ -266,38 +260,6 @@ export default function SessionsPage() {
         {/* STAFF VIEW - Manage RSVPs Table */}
         {userRole === 'teacher' && (
           <>
-            {/* Quick Actions - Above Recent Activities */}
-            <div className="mb-12">
-              <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {quickActions.map((action, index) => (
-                  <motion.div
-                    key={action.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
-                      if (action.action === 'analytics') navigate('/analytics')
-                      else if (action.action === 'students') navigate('/students')
-                    }}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                            <action.icon className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold">{action.title}</h3>
-                            <p className="text-sm text-muted-foreground">{action.description}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
             {/* Manage RSVPs Table */}
             <div className="mb-12">
               <h2 className="text-2xl font-bold mb-6">Manage Sessions</h2>
