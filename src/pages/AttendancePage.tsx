@@ -8,18 +8,6 @@ import { SemesterSelector } from '@/components/SemesterSelector'
 import { useSemester } from '@/contexts/SemesterContext'
 import { getAttendanceBySemester } from '@/data/semesterData'
 
-interface AttendanceRecord {
-  id: string
-  studentName: string
-  studentId: string
-  checkIn: string
-  checkOut: string | null
-  status: 'present' | 'absent'
-  duration: string
-  sessionName: string
-  date: string
-}
-
 export default function AttendancePage() {
   const { selectedSemester } = useSemester()
   const [searchTerm, setSearchTerm] = useState('')

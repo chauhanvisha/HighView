@@ -1,4 +1,4 @@
-import studentsData from './students.json'
+import studentsData from './students.json' assert { type: 'json' }
 
 export interface RealStudent {
   id: string

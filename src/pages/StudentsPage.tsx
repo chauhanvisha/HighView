@@ -44,34 +44,34 @@ interface StudentRecord {
 }
 
 // Load CSV data
-async function loadCSVData(): Promise<StudentRecord[]> {
-  try {
-    const response = await fetch('/student.csv')
-    const text = await response.text()
-    const lines = text.split('\n')
-    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
-    
-    const data: StudentRecord[] = []
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue
-      const values = parseCSVLine(lines[i])
-      const record: any = {}
-      headers.forEach((header, index) => {
-        const value = values[index]
-        if (['attendance', 'engagement', 'grade', 'speaking_time'].includes(header)) {
-          record[header] = parseFloat(value)
-        } else {
-          record[header] = value
-        }
-      })
-      data.push(record)
-    }
-    return data
-  } catch (error) {
-    console.error('Error loading CSV:', error)
-    return []
-  }
-}
+// async function loadCSVData(): Promise<StudentRecord[]> {
+//   try {
+//     const response = await fetch('/student.csv')
+//     const text = await response.text()
+//     const lines = text.split('\n')
+//     const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+//     
+//     const data: StudentRecord[] = []
+//     for (let i = 1; i < lines.length; i++) {
+//       if (!lines[i].trim()) continue
+//       const values = parseCSVLine(lines[i])
+//       const record: any = {}
+//       headers.forEach((header, index) => {
+//         const value = values[index]
+//         if (['attendance', 'engagement', 'grade', 'speaking_time'].includes(header)) {
+//           record[header] = parseFloat(value)
+//         } else {
+//           record[header] = value
+//         }
+//       })
+//       data.push(record)
+//     }
+//     return data
+//   } catch (error) {
+//     console.error('Error loading CSV:', error)
+//     return []
+//   }
+// }
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = []

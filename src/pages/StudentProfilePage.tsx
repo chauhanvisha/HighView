@@ -23,32 +23,32 @@ interface StudentRecord {
   topic: string
 }
 
-async function loadCSVData(): Promise<StudentRecord[]> {
-  try {
-    const response = await fetch('/student.csv')
-    const text = await response.text()
-    const lines = text.split('\n')
-    const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
-    const data: StudentRecord[] = []
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue
-      const values = parseCSVLine(lines[i])
-      const record: any = {}
-      headers.forEach((header, index) => {
-        const value = values[index]
-        if (['attendance', 'engagement', 'grade', 'speaking_time'].includes(header)) {
-          record[header] = parseFloat(value)
-        } else {
-          record[header] = value
-        }
-      })
-      data.push(record)
-    }
-    return data
-  } catch {
-    return []
-  }
-}
+// async function loadCSVData(): Promise<StudentRecord[]> {
+//   try {
+//     const response = await fetch('/student.csv')
+//     const text = await response.text()
+//     const lines = text.split('\n')
+//     const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
+//     const data: StudentRecord[] = []
+//     for (let i = 1; i < lines.length; i++) {
+//       if (!lines[i].trim()) continue
+//       const values = parseCSVLine(lines[i])
+//       const record: any = {}
+//       headers.forEach((header, index) => {
+//         const value = values[index]
+//         if (['attendance', 'engagement', 'grade', 'speaking_time'].includes(header)) {
+//           record[header] = parseFloat(value)
+//         } else {
+//           record[header] = value
+//         }
+//       })
+//       data.push(record)
+//     }
+//     return data
+//   } catch {
+//     return []
+//   }
+// }
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = []
@@ -64,13 +64,13 @@ function parseCSVLine(line: string): string[] {
   return result
 }
 
-const mockStudents: StudentRecord[] = [
-  { student_id: '10001', student_name: 'Student 10001', student_email: 'student10001@university.edu', class_name: 'Quantum Mechanics', attendance: 90.8, engagement: 65.6, grade: 71, teacher_name: 'Dr. Brown', session_date: '2025-09-26', photo_url: '', department: 'Mathematics', topic: 'Algorithm Design', speaking_time: 119, record_id: 'record_test001#10001' },
-  { student_id: '10011', student_name: 'Student 10011', student_email: 'student10011@university.edu', class_name: 'Organic Chemistry', attendance: 80.9, engagement: 78.1, grade: 76, teacher_name: 'Prof. Davis', session_date: '2025-10-25', photo_url: '', department: 'Biology', topic: 'Algorithm Design', speaking_time: 64, record_id: 'record_test001#10011' },
-  { student_id: '10018', student_name: 'Student 10018', student_email: 'student10018@university.edu', class_name: 'Statistics 101', attendance: 97.1, engagement: 78.7, grade: 95, teacher_name: 'Dr. Johnson', session_date: '2025-10-26', photo_url: '', department: 'Biology', topic: 'Chemical Bonding', speaking_time: 68, record_id: 'record_test018#10018' },
-  { student_id: '10007', student_name: 'Student 10007', student_email: 'student10007@university.edu', class_name: 'Statistics 101', attendance: 64.5, engagement: 74.3, grade: 86, teacher_name: 'Dr. Brown', session_date: '2025-10-11', photo_url: '', department: 'Engineering', topic: 'Newtonian Mechanics', speaking_time: 80, record_id: 'record_test007#10007' },
-  { student_id: '10020', student_name: 'Student 10020', student_email: 'student10020@university.edu', class_name: 'General Chemistry', attendance: 62.1, engagement: 63.7, grade: 86, teacher_name: 'Prof. Davis', session_date: '2025-10-22', photo_url: '', department: 'Biology', topic: 'Wave Physics', speaking_time: 96, record_id: 'record_test020#10020' },
-]
+// const mockStudents: StudentRecord[] = [
+//   { student_id: '10001', student_name: 'Student 10001', student_email: 'student10001@university.edu', class_name: 'Quantum Mechanics', attendance: 90.8, engagement: 65.6, grade: 71, teacher_name: 'Dr. Brown', session_date: '2025-09-26', photo_url: '', department: 'Mathematics', topic: 'Algorithm Design', speaking_time: 119, record_id: 'record_test001#10001' },
+//   { student_id: '10011', student_name: 'Student 10011', student_email: 'student10011@university.edu', class_name: 'Organic Chemistry', attendance: 80.9, engagement: 78.1, grade: 76, teacher_name: 'Prof. Davis', session_date: '2025-10-25', photo_url: '', department: 'Biology', topic: 'Algorithm Design', speaking_time: 64, record_id: 'record_test001#10011' },
+//   { student_id: '10018', student_name: 'Student 10018', student_email: 'student10018@university.edu', class_name: 'Statistics 101', attendance: 97.1, engagement: 78.7, grade: 95, teacher_name: 'Dr. Johnson', session_date: '2025-10-26', photo_url: '', department: 'Biology', topic: 'Chemical Bonding', speaking_time: 68, record_id: 'record_test018#10018' },
+//   { student_id: '10007', student_name: 'Student 10007', student_email: 'student10007@university.edu', class_name: 'Statistics 101', attendance: 64.5, engagement: 74.3, grade: 86, teacher_name: 'Dr. Brown', session_date: '2025-10-11', photo_url: '', department: 'Engineering', topic: 'Newtonian Mechanics', speaking_time: 80, record_id: 'record_test007#10007' },
+//   { student_id: '10020', student_name: 'Student 10020', student_email: 'student10020@university.edu', class_name: 'General Chemistry', attendance: 62.1, engagement: 63.7, grade: 86, teacher_name: 'Prof. Davis', session_date: '2025-10-22', photo_url: '', department: 'Biology', topic: 'Wave Physics', speaking_time: 96, record_id: 'record_test020#10020' },
+// ]
 
 function getYear(studentId: string): string {
   const n = parseInt(studentId) % 4

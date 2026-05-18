@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { GraduationCap, Mail, Lock, Eye, EyeOff, Users, User, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/button'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { authService } from '../services/authService'
 
 export default function LoginPage() {
-  const navigate = useNavigate()
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
