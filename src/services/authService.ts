@@ -1,4 +1,6 @@
-const API_URL = 'http://localhost:8000/api/auth'
+// Mock authentication - works without backend
+// In production, replace with actual API_URL from environment variable
+const USE_MOCK_AUTH = true // Set to false when backend is deployed
 
 export interface User {
   id: number
@@ -36,23 +38,29 @@ class AuthService {
     this.token = localStorage.getItem('access_token')
   }
 
-  async signup(data: SignupData): Promise<AuthResponse> {
-    try {
-      const response = await fetch(`${API_URL}/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
+  private generateMockToken(): string {
+    return 'mock_token_' + Math.random().toString(36).substring(2, 15)
+  }
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || 'Signup failed')
+  async signup(data: SignupData): Promise<AuthResponse> {
+    if (USE_MOCK_AUTH) {
+      // Mock signup - simulate successful registration
+      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate network delay
+      
+      const user: User = {
+        id: Date.now(),
+        email: data.email,
+        name: data.fullName,
+        type: data.role as 'student' | 'teacher' | 'admin',
+        institution: data.institution,
       }
 
-      const authData: AuthResponse = await response.json()
-      
+      const authData: AuthResponse = {
+        access_token: this.generateMockToken(),
+        token_type: 'Bearer',
+        user,
+      }
+
       // Store token and user data
       this.token = authData.access_token
       localStorage.setItem('access_token', authData.access_token)
@@ -60,29 +68,31 @@ class AuthService {
       localStorage.setItem('isAuthenticated', 'true')
 
       return authData
-    } catch (error) {
-      console.error('Signup error:', error)
-      throw error
     }
+
+    // Backend auth code (when USE_MOCK_AUTH is false)
+    throw new Error('Backend authentication not configured')
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
-    try {
-      const response = await fetch(`${API_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || 'Login failed')
+    if (USE_MOCK_AUTH) {
+      // Mock login - simulate successful authentication
+      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate network delay
+      
+      const user: User = {
+        id: Date.now(),
+        email: data.email,
+        name: data.email.split('@')[0],
+        type: (data.role as 'student' | 'teacher' | 'admin') || 'student',
+        institution: 'HighView',
       }
 
-      const authData: AuthResponse = await response.json()
-      
+      const authData: AuthResponse = {
+        access_token: this.generateMockToken(),
+        token_type: 'Bearer',
+        user,
+      }
+
       // Store token and user data
       this.token = authData.access_token
       localStorage.setItem('access_token', authData.access_token)
@@ -90,10 +100,10 @@ class AuthService {
       localStorage.setItem('isAuthenticated', 'true')
 
       return authData
-    } catch (error) {
-      console.error('Login error:', error)
-      throw error
     }
+
+    // Backend auth code (when USE_MOCK_AUTH is false)
+    throw new Error('Backend authentication not configured')
   }
 
   async getCurrentUser(): Promise<User> {
@@ -101,26 +111,17 @@ class AuthService {
       throw new Error('No authentication token found')
     }
 
-    try {
-      const response = await fetch(`${API_URL}/me`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.token}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to get current user')
+    if (USE_MOCK_AUTH) {
+      // Mock getCurrentUser - return user from localStorage
+      const userStr = localStorage.getItem('user')
+      if (!userStr) {
+        throw new Error('No user data found')
       }
-
-      const user: User = await response.json()
-      localStorage.setItem('user', JSON.stringify(user))
-      return user
-    } catch (error) {
-      console.error('Get current user error:', error)
-      this.logout()
-      throw error
+      return JSON.parse(userStr)
     }
+
+    // Backend auth code (when USE_MOCK_AUTH is false)
+    throw new Error('Backend authentication not configured')
   }
 
   logout(): void {
