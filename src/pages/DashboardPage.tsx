@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Calendar, Users, BarChart3, Activity, Clock, TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { SemesterSelector } from '@/components/SemesterSelector'
 import { useSemester } from '@/contexts/SemesterContext'
 import { getStatsBySemester } from '@/data/semesterData'
@@ -31,14 +30,6 @@ export default function DashboardPage() {
     })
   }, [])
 
-  // Generate attendance data from real students
-  const attendanceData = useMemo(() => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    return days.map(day => ({
-      day,
-      attendance: Math.round(realStudents.reduce((sum, s) => sum + s.attendanceRate, 0) / realStudents.length)
-    }))
-  }, [])
 
   // Generate recent activities from real students
   const recentActivities = useMemo(() => {
@@ -149,39 +140,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Attendance Chart */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Attendance Overview</CardTitle>
-                    <CardDescription>Last 7 days attendance trends</CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline">Daily</Button>
-                    <Button size="sm" variant="ghost">Weekly</Button>
-                    <Button size="sm" variant="ghost">Monthly</Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={attendanceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="attendance"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={3}
-                      dot={{ fill: 'hsl(var(--primary))', r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar - 1 column */}
