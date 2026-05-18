@@ -50,19 +50,6 @@ interface StudentRecord {
 //   }
 // }
 
-function parseCSVLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') { inQuotes = !inQuotes }
-    else if (char === ',' && !inQuotes) { result.push(current.trim()); current = '' }
-    else { current += char }
-  }
-  result.push(current.trim())
-  return result
-}
 
 // const mockStudents: StudentRecord[] = [
 //   { student_id: '10001', student_name: 'Student 10001', student_email: 'student10001@university.edu', class_name: 'Quantum Mechanics', attendance: 90.8, engagement: 65.6, grade: 71, teacher_name: 'Dr. Brown', session_date: '2025-09-26', photo_url: '', department: 'Mathematics', topic: 'Algorithm Design', speaking_time: 119, record_id: 'record_test001#10001' },

@@ -26,22 +26,6 @@ const weeklyActivity = [
   { day: 'Sun', sessions: 3, students: 80 },
 ]
 
-interface StudentRecord {
-  record_id: string
-  attendance: number
-  class_name: string
-  department: string
-  engagement: number
-  grade: number
-  photo_url: string
-  session_date: string
-  speaking_time: number
-  student_email: string
-  student_id: string
-  student_name: string
-  teacher_name: string
-  topic: string
-}
 
 // Load CSV data
 // async function loadCSVData(): Promise<StudentRecord[]> {
@@ -73,24 +57,6 @@ interface StudentRecord {
 //   }
 // }
 
-function parseCSVLine(line: string): string[] {
-  const result: string[] = []
-  let current = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i]
-    if (char === '"') {
-      inQuotes = !inQuotes
-    } else if (char === ',' && !inQuotes) {
-      result.push(current.trim())
-      current = ''
-    } else {
-      current += char
-    }
-  }
-  result.push(current.trim())
-  return result
-}
 
 const getStatusColor = (attendance: number) => {
   if (attendance >= 80) return 'bg-green-100 text-green-800 border-green-200'
