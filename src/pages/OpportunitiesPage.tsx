@@ -487,6 +487,7 @@ export default function OpportunitiesPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Spots Available</label>
                   <input
                     type="number"
+                    min="0"
                     value={formData.spots || ''}
                     onChange={(e) => setFormData({ ...formData, spots: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
