@@ -373,12 +373,22 @@ export default function OpportunitiesPage() {
                     : opp
                 ))
               } else {
-                // Add new opportunity
+                // Add new opportunity with proper defaults
                 const newOpportunity: Opportunity = {
-                  ...formData,
                   id: Date.now().toString(),
-                } as Opportunity
+                  title: formData.title || '',
+                  company: formData.company || '',
+                  type: formData.type || 'Job shadows',
+                  tags: formData.tags || [],
+                  location: formData.location || '',
+                  pay: formData.pay,
+                  duration: formData.duration,
+                  spots: formData.spots,
+                  deadline: formData.deadline,
+                  isPaid: formData.isPaid || false,
+                }
                 setOpportunities([newOpportunity, ...opportunities])
+                console.log('Added new opportunity:', newOpportunity)
               }
               
               setModalOpen(false)
