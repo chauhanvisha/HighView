@@ -33,13 +33,13 @@ function App() {
       <Route path="/signup" element={<StudentSignupPage />} />
       <Route path="/signup/student" element={<StudentSignupPage />} />
       <Route path="/signup/staff" element={<TeacherSignupPage />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute allowedRoles={['staff', 'admin']}>
-          <DashboardPage />
-        </ProtectedRoute>
-      } />
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
+            <DashboardPage />
+          </ProtectedRoute>
+        } />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/students" element={
