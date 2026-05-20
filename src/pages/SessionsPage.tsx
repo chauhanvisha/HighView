@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, Video, Upload, X, CheckCircle, Loader2, Users, Brain, AlertCircle, ClipboardList, CalendarPlus, ChevronDown } from 'lucide-react'
+import { Calendar, Clock, Video, Upload, X, CheckCircle, Loader2, Users, Brain, AlertCircle, CalendarPlus, ChevronDown, UserCheck, UserPlus } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { videoService, VideoUploadProgress, VideoAnalysisResult } from '../services/videoService'
@@ -23,10 +22,10 @@ interface Session {
   instructor: string
   enrolled: number
   rsvps: number
+  registrations?: string[] // Array of student IDs who registered
 }
 
 export default function SessionsPage() {
-  const navigate = useNavigate()
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
@@ -53,6 +52,13 @@ export default function SessionsPage() {
     const saved = localStorage.getItem('sessions')
     return saved ? JSON.parse(saved) : []
   })
+  const [sessionRegistrations, setSessionRegistrations] = useState<Record<number, string[]>>(() => {
+    const saved = localStorage.getItem('sessionRegistrations')
+    return saved ? JSON.parse(saved) : {}
+  })
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [registeredStudentsModalOpen, setRegisteredStudentsModalOpen] = useState(false)
+  const [selectedSessionForView, setSelectedSessionForView] = useState<Session | null>(null)
 
   // Generate sessions from real student data + custom sessions
   const sessions = useMemo(() => {
@@ -86,6 +92,47 @@ export default function SessionsPage() {
   useEffect(() => {
     localStorage.setItem('sessions', JSON.stringify(customSessions))
   }, [customSessions])
+
+  // Save session registrations to localStorage
+  useEffect(() => {
+    localStorage.setItem('sessionRegistrations', JSON.stringify(sessionRegistrations))
+  }, [sessionRegistrations])
+
+  const handleRegisterForSession = (sessionId: number) => {
+    if (!currentUser) return
+    
+    const studentId = currentUser.id || currentUser.email
+    const currentRegistrations = sessionRegistrations[sessionId] || []
+    
+    if (currentRegistrations.includes(studentId)) {
+      // Unregister
+      setSessionRegistrations(prev => ({
+        ...prev,
+        [sessionId]: currentRegistrations.filter(id => id !== studentId)
+      }))
+    } else {
+      // Register
+      setSessionRegistrations(prev => ({
+        ...prev,
+        [sessionId]: [...currentRegistrations, studentId]
+      }))
+    }
+  }
+
+  const isRegistered = (sessionId: number) => {
+    if (!currentUser) return false
+    const studentId = currentUser.id || currentUser.email
+    return (sessionRegistrations[sessionId] || []).includes(studentId)
+  }
+
+  const getRegistrationCount = (sessionId: number) => {
+    return (sessionRegistrations[sessionId] || []).length
+  }
+
+  const getRegisteredStudents = (sessionId: number) => {
+    const registeredIds = sessionRegistrations[sessionId] || []
+    return realStudents.filter(student => registeredIds.includes(student.id))
+  }
 
   const handleAddSession = () => {
     if (!sessionFormData.title || !sessionFormData.date || !sessionFormData.time || !sessionFormData.instructor) {
@@ -145,6 +192,7 @@ export default function SessionsPage() {
     const userData = localStorage.getItem('user')
     if (userData) {
       const user = JSON.parse(userData)
+      setCurrentUser(user)
       setUserRole(user.type || 'student')
     }
 
@@ -286,8 +334,33 @@ export default function SessionsPage() {
                           </div>
                         )}
                       </div>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{getRegistrationCount(session.id)}</span>
+                          <span className="text-muted-foreground">registered</span>
+                        </div>
+                      </div>
                       <div className="flex gap-2">
-                        <Button size="sm" className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant={isRegistered(session.id) ? "outline" : "default"}
+                          onClick={() => handleRegisterForSession(session.id)}
+                          className="flex items-center gap-2"
+                        >
+                          {isRegistered(session.id) ? (
+                            <>
+                              <UserCheck className="h-4 w-4" />
+                              Registered
+                            </>
+                          ) : (
+                            <>
+                              <UserPlus className="h-4 w-4" />
+                              Register
+                            </>
+                          )}
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex items-center gap-2">
                           <Video className="h-4 w-4" />
                           Join Session
                         </Button>
@@ -389,8 +462,8 @@ export default function SessionsPage() {
                             <span className="px-3 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
                               {session.type}
                             </span>
-                            <span className="text-sm text-muted-foreground">
-                              {session.rsvps}/{session.enrolled} RSVPs
+                            <span className="text-sm font-semibold text-green-600">
+                              {getRegistrationCount(session.id)} registered
                             </span>
                           </div>
                         </div>
@@ -413,11 +486,14 @@ export default function SessionsPage() {
                         <div className="flex gap-3">
                           <Button 
                             size="sm"
-                            onClick={() => navigate(`/sessions/${session.id}/attendance`)}
+                            onClick={() => {
+                              setSelectedSessionForView(session)
+                              setRegisteredStudentsModalOpen(true)
+                            }}
                             className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
                           >
-                            <ClipboardList className="h-4 w-4" />
-                            Manage RSVPs
+                            <Users className="h-4 w-4" />
+                            View Registrations ({getRegistrationCount(session.id)})
                           </Button>
                           <Button
                             size="sm"
@@ -826,6 +902,80 @@ export default function SessionsPage() {
                   Cancel
                 </Button>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Registered Students Modal */}
+      {registeredStudentsModalOpen && selectedSessionForView && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+          >
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedSessionForView.title}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {getRegistrationCount(selectedSessionForView.id)} students registered
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setRegisteredStudentsModalOpen(false)
+                    setSelectedSessionForView(null)
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {getRegistrationCount(selectedSessionForView.id) === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No students registered yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {getRegisteredStudents(selectedSessionForView.id).map((student) => (
+                    <div
+                      key={student.id}
+                      className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/30 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                        {student.name.charAt(0)}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">{student.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{student.major}</p>
+                        <p className="text-xs text-muted-foreground">{student.university}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t bg-muted/30">
+              <Button
+                onClick={() => {
+                  setRegisteredStudentsModalOpen(false)
+                  setSelectedSessionForView(null)
+                }}
+                className="w-full"
+              >
+                Close
+              </Button>
             </div>
           </motion.div>
         </div>
