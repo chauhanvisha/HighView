@@ -1,31 +1,10 @@
 import { motion } from 'framer-motion'
-import { Search, Plus, Eye, Mail, BarChart3, ChevronLeft, ChevronRight, Activity } from 'lucide-react'
+import { Search, Plus, Eye, Mail, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { useState, useEffect } from 'react'
 import { getAllStudents, addStudent } from '../services/api'
 import { realStudents } from '../data/transformStudents'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts'
-
-const weeklyActivity = [
-  { day: 'Mon', sessions: 12, students: 285 },
-  { day: 'Tue', sessions: 15, students: 310 },
-  { day: 'Wed', sessions: 13, students: 295 },
-  { day: 'Thu', sessions: 14, students: 305 },
-  { day: 'Fri', sessions: 11, students: 270 },
-  { day: 'Sat', sessions: 6, students: 150 },
-  { day: 'Sun', sessions: 3, students: 80 },
-]
-
 
 // Load CSV data
 // async function loadCSVData(): Promise<StudentRecord[]> {
@@ -438,29 +417,6 @@ export default function StudentsPage() {
             </div>
           </div>
 
-          {/* Weekly Activity */}
-          <Card className="mt-8">
-            <div className="p-6 border-b">
-              <div className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                <h2 className="text-lg font-semibold">Weekly Activity</h2>
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">Sessions and student participation by day</p>
-            </div>
-            <div className="p-6">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={weeklyActivity}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="day" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="sessions" fill="#8b5cf6" name="Sessions" />
-                  <Bar dataKey="students" fill="#10b981" name="Students" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
         </motion.div>
       </div>
     </div>
