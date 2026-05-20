@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Download, Search, ChevronDown } from 'lucide-react'
+import { Download, Search, ChevronDown, Settings, ArrowUpDown } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { cohortStudents, realStudents } from '../data/transformStudents'
 
@@ -182,11 +182,15 @@ function InlineProfile({ student, onClose }: { student: Student; onClose: () => 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function CohortPage() {
-  const [semester, setSemester] = useState('Spring 2025')
+  const [semester, setSemester] = useState(SEMESTERS[0])
   const [search, setSearch] = useState('')
   const [yearFilter, setYearFilter] = useState('All years')
   const [statusFilter, setStatusFilter] = useState('All status')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [atRiskThreshold, setAtRiskThreshold] = useState(30)
+  const [showSettings, setShowSettings] = useState(false)
+  const [sortColumn, setSortColumn] = useState<'name' | 'school' | 'year' | 'ai' | 'experiential' | 'sessionAttendance' | 'status' | 'lastActive' | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const totalStudents = realStudents.length
 
@@ -198,10 +202,10 @@ export default function CohortPage() {
     return Math.round(avg)
   }, [])
 
-  // At-risk: students with engagementScore < 30 (excluding not-started)
+  // At-risk: students with engagementScore < threshold (excluding not-started)
   const atRiskCount = useMemo(() =>
-    realStudents.filter(s => s.engagementScore > 0 && s.engagementScore < 30).length
-  , [])
+    realStudents.filter(s => s.engagementScore > 0 && s.engagementScore < atRiskThreshold).length
+  , [atRiskThreshold])
 
   // Not started: attendanceRate === 0
   const notStartedCount = useMemo(() =>
@@ -257,23 +261,54 @@ export default function CohortPage() {
       alerts.push({
         id: 2,
         color: 'bg-amber-600',
-        text: `${atRiskCount} student${atRiskCount !== 1 ? 's' : ''} with engagement score below 30`,
+        text: `${atRiskCount} student${atRiskCount !== 1 ? 's' : ''} with engagement score below ${atRiskThreshold}`,
         sub: 'Consider re-engagement outreach',
       })
     }
     return alerts
-  }, [notStartedCount, atRiskCount])
+  }, [notStartedCount, atRiskCount, atRiskThreshold])
 
-  const filtered = STUDENTS.filter(s => {
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase())
-    const matchYear = yearFilter === 'All years' || s.year === yearFilter
-    const matchStatus = statusFilter === 'All status' || s.status === statusFilter
-    return matchSearch && matchYear && matchStatus
-  })
+  const filtered = useMemo(() => {
+    let result = STUDENTS.filter(s => {
+      const matchSearch = s.name.toLowerCase().includes(search.toLowerCase())
+      const matchYear = yearFilter === 'All years' || s.year === yearFilter
+      const matchStatus = statusFilter === 'All status' || s.status === statusFilter
+      return matchSearch && matchYear && matchStatus
+    })
+
+    // Apply sorting
+    if (sortColumn) {
+      result = [...result].sort((a, b) => {
+        let aVal: any = a[sortColumn]
+        let bVal: any = b[sortColumn]
+
+        // Handle string comparison
+        if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase()
+          bVal = bVal.toLowerCase()
+        }
+
+        if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+        if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+
+    return result
+  }, [search, yearFilter, statusFilter, sortColumn, sortDirection])
 
   const toggleStudent = (id: string) => {
     console.log('Toggling student:', id, 'Current selected:', selectedId)
     setSelectedId(prev => prev === id ? null : id)
+  }
+
+  const handleSort = (column: typeof sortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
   }
 
   return (
@@ -290,6 +325,15 @@ export default function CohortPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSettings(!showSettings)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
               <div className="relative">
                 <select
                   value={semester}
@@ -408,7 +452,50 @@ export default function CohortPage() {
             </div>
           </div>
 
-          {/* ── Alerts & Follow-ups ── */}
+          {/* ── Settings Panel ── */}
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border rounded-xl p-6 mb-8 bg-gray-50"
+            >
+              <h2 className="text-lg font-bold mb-4">Cohort Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    At Risk Threshold (Engagement Score)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={atRiskThreshold}
+                      onChange={(e) => setAtRiskThreshold(Number(e.target.value))}
+                      className="flex-1"
+                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={atRiskThreshold}
+                        onChange={(e) => setAtRiskThreshold(Number(e.target.value))}
+                        className="w-20 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                      <span className="text-sm text-gray-600">%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Students with engagement scores below {atRiskThreshold}% will be flagged as "At Risk"
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Alerts & follow-ups ── */}
           <div className="border rounded-xl p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Alerts & follow-ups</h2>
@@ -482,12 +569,37 @@ export default function CohortPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400">Student</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">School</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">Year</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-400">
+                      <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-gray-600">
+                        Student
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">
+                      <button onClick={() => handleSort('school')} className="flex items-center gap-1 hover:text-gray-600">
+                        School
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">
+                      <button onClick={() => handleSort('year')} className="flex items-center gap-1 hover:text-gray-600">
+                        Year
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">Progress</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">Status</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">Last active</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">
+                      <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-gray-600">
+                        Status
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400">
+                      <button onClick={() => handleSort('lastActive')} className="flex items-center gap-1 hover:text-gray-600">
+                        Last active
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
