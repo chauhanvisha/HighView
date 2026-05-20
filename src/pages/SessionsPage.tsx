@@ -14,6 +14,17 @@ const recentActivities = [
   { event: 'Recording Uploaded', detail: 'ML Study Group video uploaded', time: '1 day ago' },
 ]
 
+interface Session {
+  id: number
+  title: string
+  date: string
+  time: string
+  type: 'Virtual' | 'In-Person'
+  instructor: string
+  enrolled: number
+  rsvps: number
+}
+
 export default function SessionsPage() {
   const navigate = useNavigate()
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -29,15 +40,28 @@ export default function SessionsPage() {
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
   const [calendarDropdownOpen, setCalendarDropdownOpen] = useState<number | null>(null)
+  const [sessionModalOpen, setSessionModalOpen] = useState(false)
+  const [editingSession, setEditingSession] = useState<Session | null>(null)
+  const [sessionFormData, setSessionFormData] = useState({
+    title: '',
+    date: '',
+    time: '',
+    type: 'Virtual' as 'Virtual' | 'In-Person',
+    instructor: '',
+  })
+  const [customSessions, setCustomSessions] = useState<Session[]>(() => {
+    const saved = localStorage.getItem('sessions')
+    return saved ? JSON.parse(saved) : []
+  })
 
-  // Generate sessions from real student data
+  // Generate sessions from real student data + custom sessions
   const sessions = useMemo(() => {
     const majors = [...new Set(realStudents.map(s => s.major))].slice(0, 3)
     const dates = ['Oct 28, 2025', 'Oct 30, 2025', 'Nov 2, 2025']
     const times = ['2:00 PM - 4:00 PM', '10:00 AM - 11:30 AM', '3:00 PM - 5:00 PM']
     const types = ['Virtual', 'Virtual', 'In-Person']
     
-    return majors.map((major, index) => {
+    const generatedSessions = majors.map((major, index) => {
       const studentsInMajor = realStudents.filter(s => s.major === major)
       const enrolled = studentsInMajor.length
       const rsvps = Math.floor(enrolled * 0.85)
@@ -53,7 +77,69 @@ export default function SessionsPage() {
         rsvps,
       }
     })
-  }, [])
+
+    // Combine generated and custom sessions
+    return [...generatedSessions, ...customSessions]
+  }, [customSessions])
+
+  // Save custom sessions to localStorage
+  useEffect(() => {
+    localStorage.setItem('sessions', JSON.stringify(customSessions))
+  }, [customSessions])
+
+  const handleAddSession = () => {
+    if (!sessionFormData.title || !sessionFormData.date || !sessionFormData.time || !sessionFormData.instructor) {
+      alert('Please fill in all required fields')
+      return
+    }
+
+    if (editingSession) {
+      // Update existing session
+      setCustomSessions(prev => prev.map(s => 
+        s.id === editingSession.id 
+          ? { ...editingSession, ...sessionFormData, enrolled: editingSession.enrolled, rsvps: editingSession.rsvps }
+          : s
+      ))
+    } else {
+      // Add new session
+      const newSession: Session = {
+        id: Date.now(),
+        ...sessionFormData,
+        enrolled: 0,
+        rsvps: 0,
+      }
+      setCustomSessions(prev => [...prev, newSession])
+    }
+
+    // Reset form
+    setSessionFormData({
+      title: '',
+      date: '',
+      time: '',
+      type: 'Virtual',
+      instructor: '',
+    })
+    setEditingSession(null)
+    setSessionModalOpen(false)
+  }
+
+  // const handleEditSession = (session: Session) => {
+  //   setEditingSession(session)
+  //   setSessionFormData({
+  //     title: session.title,
+  //     date: session.date,
+  //     time: session.time,
+  //     type: session.type,
+  //     instructor: session.instructor,
+  //   })
+  //   setSessionModalOpen(true)
+  // }
+
+  // const handleDeleteSession = (sessionId: number) => {
+  //   if (confirm('Are you sure you want to delete this session?')) {
+  //     setCustomSessions(prev => prev.filter(s => s.id !== sessionId))
+  //   }
+  // }
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -127,13 +213,34 @@ export default function SessionsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-4xl font-bold mb-4">Sessions</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Sessions</h1>
+          {userRole === 'staff' && (
+            <Button
+              onClick={() => {
+                setEditingSession(null)
+                setSessionFormData({
+                  title: '',
+                  date: '',
+                  time: '',
+                  type: 'Virtual',
+                  instructor: '',
+                })
+                setSessionModalOpen(true)
+              }}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            >
+              <CalendarPlus className="h-4 w-4 mr-2" />
+              Add Session
+            </Button>
+          )}
+        </div>
         <p className="text-xl text-muted-foreground mb-12">
           {userRole === 'student' ? 'Upcoming learning sessions and workshops' : 'Manage sessions and track attendance'}
         </p>
@@ -599,6 +706,127 @@ export default function SessionsPage() {
                 </div>
               </>
             )}
+          </motion.div>
+        </div>
+      )}
+
+      {/* Add/Edit Session Modal */}
+      {sessionModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl max-w-2xl w-full p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto"
+          >
+            <button
+              onClick={() => {
+                setSessionModalOpen(false)
+                setEditingSession(null)
+                setSessionFormData({
+                  title: '',
+                  date: '',
+                  time: '',
+                  type: 'Virtual',
+                  instructor: '',
+                })
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <h2 className="text-2xl font-bold mb-6">
+              {editingSession ? 'Edit Session' : 'Add New Session'}
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Session Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={sessionFormData.title}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Computer Science Workshop"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={sessionFormData.date}
+                    onChange={(e) => setSessionFormData({ ...sessionFormData, date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Time *</label>
+                  <input
+                    type="text"
+                    required
+                    value={sessionFormData.time}
+                    onChange={(e) => setSessionFormData({ ...sessionFormData, time: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., 2:00 PM - 4:00 PM"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Session Type *</label>
+                <select
+                  required
+                  value={sessionFormData.type}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, type: e.target.value as 'Virtual' | 'In-Person' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Virtual">Virtual</option>
+                  <option value="In-Person">In-Person</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Instructor *</label>
+                <input
+                  type="text"
+                  required
+                  value={sessionFormData.instructor}
+                  onChange={(e) => setSessionFormData({ ...sessionFormData, instructor: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., HighView Staff"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleAddSession}
+                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                >
+                  {editingSession ? 'Update Session' : 'Create Session'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSessionModalOpen(false)
+                    setEditingSession(null)
+                    setSessionFormData({
+                      title: '',
+                      date: '',
+                      time: '',
+                      type: 'Virtual',
+                      instructor: '',
+                    })
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </motion.div>
         </div>
       )}
