@@ -283,7 +283,7 @@ export default function StudentsPage() {
                   <tr>
                     <th className="text-left p-4 font-semibold">Student ID</th>
                     <th className="text-left p-4 font-semibold">Name</th>
-                    <th className="text-left p-4 font-semibold">Class</th>
+                    <th className="text-left p-4 font-semibold">Major</th>
                     <th className="text-left p-4 font-semibold">Attendance</th>
                     <th className="text-left p-4 font-semibold">Engagement</th>
                     <th className="text-left p-4 font-semibold">Last Active</th>
