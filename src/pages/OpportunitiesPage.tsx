@@ -7,7 +7,7 @@ interface Opportunity {
   id: string
   title: string
   company: string
-  type: 'Job shadows' | 'Micro-internships' | 'Networking' | 'Mentorship' | 'Hackathons'
+  type: 'Job shadows' | 'Micro-internships' | 'Networking' | 'Mentorship' | 'Hackathons' | 'Internships' | 'Workshops' | 'Career Fairs' | 'Volunteer'
   tags: string[]
   location: string
   pay?: string
@@ -17,6 +17,7 @@ interface Opportunity {
   deadline?: string
   status?: 'New' | 'Closes Soon'
   isPaid?: boolean
+  applicationLink?: string
 }
 
 const mockOpportunities: Opportunity[] = [
@@ -70,7 +71,7 @@ const mockOpportunities: Opportunity[] = [
   }
 ]
 
-const filterOptions = ['All', 'Job shadows', 'Micro-internships', 'Networking', 'Mentorship', 'Hackathons'] as const
+const filterOptions = ['All', 'Job shadows', 'Micro-internships', 'Networking', 'Mentorship', 'Hackathons', 'Internships', 'Workshops', 'Career Fairs', 'Volunteer'] as const
 
 export default function OpportunitiesPage() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -94,6 +95,7 @@ export default function OpportunitiesPage() {
     spots: 0,
     deadline: '',
     isPaid: false,
+    applicationLink: '',
   })
 
   useEffect(() => {
@@ -114,6 +116,14 @@ export default function OpportunitiesPage() {
     ? filterOptions.filter(f => f !== 'Mentorship')
     : filterOptions
 
+  // Helper function to check if deadline has passed
+  const isExpired = (deadline?: string) => {
+    if (!deadline) return false
+    const today = new Date()
+    const deadlineDate = new Date(deadline + ', 2026') // Assuming current year
+    return deadlineDate < today
+  }
+
   const filteredOpportunities = opportunities.filter(opp => {
     const matchesSearch = opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          opp.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -121,7 +131,10 @@ export default function OpportunitiesPage() {
     
     const matchesFilter = activeFilter === 'All' || opp.type === activeFilter
     
-    return matchesSearch && matchesFilter
+    // Hide expired opportunities
+    const notExpired = !isExpired(opp.deadline)
+    
+    return matchesSearch && matchesFilter && notExpired
   })
 
   const openCount = filteredOpportunities.length
@@ -164,6 +177,7 @@ export default function OpportunitiesPage() {
                       spots: 0,
                       deadline: '',
                       isPaid: false,
+                      applicationLink: '',
                     })
                     setModalOpen(true)
                   }}
@@ -293,7 +307,7 @@ export default function OpportunitiesPage() {
               </div>
 
               {/* Details */}
-              <div className="flex items-center gap-6 text-sm text-gray-600">
+              <div className="flex items-center gap-6 text-sm text-gray-600 mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   <span>{opportunity.location}</span>
@@ -317,6 +331,24 @@ export default function OpportunitiesPage() {
                   </div>
                 )}
               </div>
+
+              {/* Application Link */}
+              {opportunity.applicationLink && (
+                <div className="mt-4">
+                  <a
+                    href={opportunity.applicationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Apply Now
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -351,6 +383,7 @@ export default function OpportunitiesPage() {
                   spots: 0,
                   deadline: '',
                   isPaid: false,
+                  applicationLink: '',
                 })
               }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -443,7 +476,23 @@ export default function OpportunitiesPage() {
                   <option value="Networking">Networking</option>
                   <option value="Mentorship">Mentorship</option>
                   <option value="Hackathons">Hackathons</option>
+                  <option value="Internships">Internships</option>
+                  <option value="Workshops">Workshops</option>
+                  <option value="Career Fairs">Career Fairs</option>
+                  <option value="Volunteer">Volunteer</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Application Link</label>
+                <input
+                  type="url"
+                  value={formData.applicationLink}
+                  onChange={(e) => setFormData({ ...formData, applicationLink: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com/apply"
+                />
+                <p className="text-xs text-gray-500 mt-1">Optional: Link where students can apply for this opportunity</p>
               </div>
 
               <div>
