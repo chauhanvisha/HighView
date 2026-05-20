@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, Video, Upload, X, CheckCircle, Loader2, Users, Brain, AlertCircle, CalendarPlus, ChevronDown, UserCheck, UserPlus } from 'lucide-react'
+import { Calendar, Clock, Video, Upload, X, CheckCircle, Loader2, Users, Brain, AlertCircle, CalendarPlus, ChevronDown, UserCheck, UserPlus, Edit, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { videoService, VideoUploadProgress, VideoAnalysisResult } from '../services/videoService'
@@ -170,23 +170,29 @@ export default function SessionsPage() {
     setSessionModalOpen(false)
   }
 
-  // const handleEditSession = (session: Session) => {
-  //   setEditingSession(session)
-  //   setSessionFormData({
-  //     title: session.title,
-  //     date: session.date,
-  //     time: session.time,
-  //     type: session.type,
-  //     instructor: session.instructor,
-  //   })
-  //   setSessionModalOpen(true)
-  // }
+  const handleEditSession = (session: Session) => {
+    setEditingSession(session)
+    setSessionFormData({
+      title: session.title,
+      date: session.date,
+      time: session.time,
+      type: session.type,
+      instructor: session.instructor,
+    })
+    setSessionModalOpen(true)
+  }
 
-  // const handleDeleteSession = (sessionId: number) => {
-  //   if (confirm('Are you sure you want to delete this session?')) {
-  //     setCustomSessions(prev => prev.filter(s => s.id !== sessionId))
-  //   }
-  // }
+  const handleDeleteSession = (sessionId: number) => {
+    if (window.confirm('Are you sure you want to delete this session?')) {
+      setCustomSessions(prev => prev.filter(s => s.id !== sessionId))
+      // Also remove registrations for this session
+      setSessionRegistrations(prev => {
+        const updated = { ...prev }
+        delete updated[sessionId]
+        return updated
+      })
+    }
+  }
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -483,7 +489,7 @@ export default function SessionsPage() {
                             <span>{session.enrolled} enrolled</span>
                           </div>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap gap-2">
                           <Button 
                             size="sm"
                             onClick={() => {
@@ -494,6 +500,24 @@ export default function SessionsPage() {
                           >
                             <Users className="h-4 w-4" />
                             View Registrations ({getRegistrationCount(session.id)})
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditSession(session)}
+                            className="flex items-center gap-2"
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteSession(session.id)}
+                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
                           </Button>
                           <Button
                             size="sm"
