@@ -80,15 +80,15 @@ export default function LoginPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setFormData({ ...formData, role: 'teacher' })}
+                onClick={() => setFormData({ ...formData, role: 'staff' })}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium transition-all ${
-                  formData.role === 'teacher'
+                  formData.role === 'staff'
                     ? 'bg-white shadow-sm text-blue-600'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Users className="h-5 w-5" />
-                Teacher
+                Staff
               </button>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function LoginPage() {
                     className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="student">Student</option>
-                    <option value="teacher">Teacher</option>
+                    <option value="staff">Staff</option>
                     <option value="admin">Administrator</option>
                   </select>
                 </div>

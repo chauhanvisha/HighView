@@ -27,7 +27,7 @@ export default function SessionsPage() {
   const [result, setResult] = useState<VideoAnalysisResult | null>(null)
   const [processedVideos, setProcessedVideos] = useState<VideoAnalysisResult[]>([])
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null)
-  const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
   const [calendarDropdownOpen, setCalendarDropdownOpen] = useState<number | null>(null)
 
   // Generate sessions from real student data
@@ -258,7 +258,7 @@ export default function SessionsPage() {
         )}
 
         {/* STAFF VIEW - Manage RSVPs Table */}
-        {userRole === 'teacher' && (
+        {userRole === 'staff' && (
           <>
             {/* Manage RSVPs Table */}
             <div className="mb-12">

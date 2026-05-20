@@ -75,7 +75,7 @@ const filterOptions = ['All', 'Job shadows', 'Micro-internships', 'Networking', 
 export default function OpportunitiesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<typeof filterOptions[number]>('All')
-  const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
   const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
     // Load opportunities from localStorage or use mock data
     const saved = localStorage.getItem('opportunities')
@@ -143,13 +143,13 @@ export default function OpportunitiesPage() {
             <nav className="flex gap-8">
               <a href="/" className="text-gray-600 hover:text-gray-900">Home</a>
               <a href="/explore" className="text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Explore</a>
-              {userRole === 'teacher' && (
+              {userRole === 'staff' && (
                 <a href="/mentors" className="text-gray-600 hover:text-gray-900">Mentors</a>
               )}
               <a href="/profile" className="text-gray-600 hover:text-gray-900">Profile</a>
             </nav>
             <div className="ml-auto flex items-center gap-4">
-              {userRole === 'teacher' && (
+              {userRole === 'staff' && (
                 <Button 
                   onClick={() => {
                     setEditingOpportunity(null)
@@ -229,7 +229,7 @@ export default function OpportunitiesPage() {
               key={opportunity.id}
               className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer relative"
             >
-              {userRole === 'teacher' && (
+              {userRole === 'staff' && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()

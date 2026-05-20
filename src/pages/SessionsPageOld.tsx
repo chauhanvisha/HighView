@@ -43,7 +43,7 @@ export default function SessionsPage() {
   const [result, setResult] = useState<VideoAnalysisResult | null>(null)
   const [processedVideos, setProcessedVideos] = useState<VideoAnalysisResult[]>([])
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null)
-  const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
 
   useEffect(() => {
     // Get user role from localStorage
@@ -168,7 +168,7 @@ export default function SessionsPage() {
                     )}
                   </div>
                   <div className="flex gap-3">
-                    {userRole === 'teacher' ? (
+                    {userRole === 'staff' ? (
                       <>
                         <Button 
                           size="sm"

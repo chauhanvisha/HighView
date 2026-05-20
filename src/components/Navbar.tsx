@@ -24,7 +24,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
   const [user, setUser] = useState<any>(null)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
 
@@ -53,7 +53,7 @@ export default function Navbar() {
   }
 
   // Get navigation items based on user role
-  const navItems = userRole === 'teacher' ? staffNavItems : studentNavItems
+  const navItems = userRole === 'staff' ? staffNavItems : studentNavItems
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -98,14 +98,14 @@ export default function Navbar() {
               <>
                 {/* Role Badge (non-clickable) */}
                 <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-                  userRole === 'teacher'
+                  userRole === 'staff'
                     ? 'bg-blue-100 text-blue-700'
                     : 'bg-purple-100 text-purple-700'
                 }`}>
-                  {userRole === 'teacher' ? (
+                  {userRole === 'staff' ? (
                     <>
                       <Users className="h-4 w-4" />
-                      Teacher
+                      Staff
                     </>
                   ) : (
                     <>

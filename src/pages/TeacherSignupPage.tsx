@@ -26,7 +26,7 @@ export default function TeacherSignupPage() {
         email: formData.email,
         password: formData.password,
         fullName: formData.fullName,
-        role: 'teacher',
+        role: 'staff',
         institution: formData.institution,
       })
       
@@ -58,7 +58,7 @@ export default function TeacherSignupPage() {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Create Teacher Account</h1>
+                <h1 className="text-3xl font-bold mb-2">Staff Signup</h1>
                 <p className="text-muted-foreground">Join HighView as an educator</p>
               </div>
             </div>

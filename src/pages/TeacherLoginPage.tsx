@@ -23,7 +23,7 @@ export default function TeacherLoginPage() {
       await authService.login({
         email: formData.email,
         password: formData.password,
-        role: 'teacher',
+        role: 'staff',
       })
       
       window.location.href = '/'
@@ -54,8 +54,8 @@ export default function TeacherLoginPage() {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Teacher Login</h1>
-                <p className="text-muted-foreground">Access your staff account</p>
+                <h1 className="text-3xl font-bold mb-2">Staff Login</h1>
+                <p className="text-muted-foreground mb-8">Sign in to access your staff dashboard</p>
               </div>
             </div>
           </div>

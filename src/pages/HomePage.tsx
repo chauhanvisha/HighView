@@ -315,7 +315,7 @@ function FAQChatbot() {
 
 export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
@@ -398,7 +398,7 @@ export default function HomePage() {
   }
 
   // Teacher Dashboard
-  if (userRole === 'teacher') {
+  if (userRole === 'staff') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
         <div className="container mx-auto px-4">
@@ -408,7 +408,7 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-2">Staff Dashboard</h1>
             <p className="text-muted-foreground">Welcome back, {user?.name}! Here's an overview of your cohort.</p>
           </motion.div>
 

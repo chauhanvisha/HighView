@@ -29,12 +29,12 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/login/student" element={<StudentLoginPage />} />
-      <Route path="/login/teacher" element={<TeacherLoginPage />} />
+      <Route path="/login/staff" element={<TeacherLoginPage />} />
       <Route path="/signup" element={<StudentSignupPage />} />
       <Route path="/signup/student" element={<StudentSignupPage />} />
-      <Route path="/signup/teacher" element={<TeacherSignupPage />} />
+      <Route path="/signup/staff" element={<TeacherSignupPage />} />
       <Route path="/dashboard" element={
-        <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+        <ProtectedRoute allowedRoles={['staff', 'admin']}>
           <DashboardPage />
         </ProtectedRoute>
       } />
@@ -43,34 +43,34 @@ function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/students" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <StudentsPage />
           </ProtectedRoute>
         } />
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/attendance" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <AttendancePage />
           </ProtectedRoute>
         } />
         <Route path="/leaderboard" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <LeaderboardPage />
           </ProtectedRoute>
         } />
         <Route path="/analytics" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <AnalyticsPage />
           </ProtectedRoute>
         } />
         <Route path="/cohort" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <CohortPage />
           </ProtectedRoute>
         } />
         <Route path="/cohort/:studentId" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <StudentProfilePage />
           </ProtectedRoute>
         } />
@@ -78,12 +78,12 @@ function App() {
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/sessions/:sessionId/attendance" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <AttendanceTrackingPage />
           </ProtectedRoute>
         } />
         <Route path="/opportunities/add" element={
-          <ProtectedRoute allowedRoles={['teacher', 'admin']}>
+          <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <AddOpportunityPage />
           </ProtectedRoute>
         } />

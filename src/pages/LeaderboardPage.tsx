@@ -29,7 +29,7 @@ export default function LeaderboardPage() {
   const [timeframe, setTimeframe] = useState<'week' | 'month' | 'semester'>('week')
   const [sortColumn, setSortColumn] = useState<SortColumn>('rank')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
-  const [userRole, setUserRole] = useState<'teacher' | 'student'>('student')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
 
   // Check user role and redirect students
   useEffect(() => {

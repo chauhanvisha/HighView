@@ -63,11 +63,11 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex gap-2 justify-center md:justify-start">
                   <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${
-                    user.type === 'teacher'
+                    user.type === 'staff'
                       ? 'bg-blue-100 text-blue-700'
                       : 'bg-purple-100 text-purple-700'
                   }`}>
-                    {user.type === 'teacher' ? 'Staff Member' : 'Student'}
+                    {user.type === 'staff' ? 'Staff Member' : 'Student'}
                   </span>
                 </div>
               </div>

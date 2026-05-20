@@ -6,7 +6,7 @@ export interface User {
   id: number
   email: string
   name: string
-  type: 'student' | 'teacher' | 'admin'
+  type: 'student' | 'staff' | 'admin'
   institution?: string
 }
 
@@ -51,7 +51,7 @@ class AuthService {
         id: Date.now(),
         email: data.email,
         name: data.fullName,
-        type: data.role as 'student' | 'teacher' | 'admin',
+        type: data.role as 'student' | 'staff' | 'admin',
         institution: data.institution,
       }
 
@@ -83,7 +83,7 @@ class AuthService {
         id: Date.now(),
         email: data.email,
         name: data.email.split('@')[0],
-        type: (data.role as 'student' | 'teacher' | 'admin') || 'student',
+        type: (data.role as 'student' | 'staff' | 'admin') || 'student',
         institution: 'HighView',
       }
 
