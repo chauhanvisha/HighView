@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Search, Plus, Eye, Mail, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Plus, Eye, Mail, BarChart3, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { useState, useEffect } from 'react'
@@ -48,6 +48,8 @@ export default function StudentsPage() {
   const [filterClass, setFilterClass] = useState('all')
   const [apiStudents, setApiStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortColumn, setSortColumn] = useState<'student_id' | 'student_name' | 'class_name' | 'attendance' | 'engagement' | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [error, setError] = useState<string | null>(null)
 
   // Fetch students from API on component mount
@@ -194,6 +196,15 @@ export default function StudentsPage() {
   // Combine API students with mock students, prioritize API data
   const allStudents = apiStudents.length > 0 ? apiStudents : []
   
+  const handleSort = (column: typeof sortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
   const filteredStudents = allStudents.filter((student: any) => {
     const name = student.student_name || student.name || ''
     const id = student.student_id || student.id || ''
@@ -203,6 +214,21 @@ export default function StudentsPage() {
                          id.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesClass = filterClass === 'all' || className === filterClass
     return matchesSearch && matchesClass
+  }).sort((a, b) => {
+    if (!sortColumn) return 0
+    
+    let aVal: any = a[sortColumn] || ''
+    let bVal: any = b[sortColumn] || ''
+    
+    // Handle string comparison
+    if (typeof aVal === 'string') {
+      aVal = aVal.toLowerCase()
+      bVal = bVal.toLowerCase()
+    }
+    
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
+    return 0
   })
 
   return (
@@ -281,11 +307,36 @@ export default function StudentsPage() {
               <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left p-4 font-semibold">Student ID</th>
-                    <th className="text-left p-4 font-semibold">Name</th>
-                    <th className="text-left p-4 font-semibold">Major</th>
-                    <th className="text-left p-4 font-semibold">Attendance</th>
-                    <th className="text-left p-4 font-semibold">Engagement</th>
+                    <th className="text-left p-4 font-semibold">
+                      <button onClick={() => handleSort('student_id')} className="flex items-center gap-1 hover:text-primary">
+                        Student ID
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-semibold">
+                      <button onClick={() => handleSort('student_name')} className="flex items-center gap-1 hover:text-primary">
+                        Name
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-semibold">
+                      <button onClick={() => handleSort('class_name')} className="flex items-center gap-1 hover:text-primary">
+                        Major
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-semibold">
+                      <button onClick={() => handleSort('attendance')} className="flex items-center gap-1 hover:text-primary">
+                        Attendance
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
+                    <th className="text-left p-4 font-semibold">
+                      <button onClick={() => handleSort('engagement')} className="flex items-center gap-1 hover:text-primary">
+                        Engagement
+                        <ArrowUpDown className="h-3 w-3" />
+                      </button>
+                    </th>
                     <th className="text-left p-4 font-semibold">Last Active</th>
                     <th className="text-left p-4 font-semibold">Actions</th>
                   </tr>
