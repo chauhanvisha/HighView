@@ -6,7 +6,7 @@ import FeaturesSection from '../components/FeaturesSection'
 import StatsSection from '../components/StatsSection'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
-import { BarChart3, Users, TrendingUp, Clock, Award, Target, MessageCircle, X } from 'lucide-react'
+import { BarChart3, Users, TrendingUp, Clock, Award, Target, MessageCircle, X, Briefcase, Calendar } from 'lucide-react'
 import { realStudents } from '../data/transformStudents'
 
 // FAQ Responses
@@ -538,23 +538,55 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* My Courses */}
+        {/* Quick Access Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
-              My Courses
-            </h3>
-            <p className="text-muted-foreground text-sm">Course data will appear once sessions are processed.</p>
-          </Card>
+          {/* Opportunities Card */}
+          <Link to="/explore">
+            <Card className="p-6 hover:shadow-lg transition-all cursor-pointer group">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  Opportunities
+                </h3>
+                <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">View all →</span>
+              </div>
+              <p className="text-muted-foreground text-sm mb-4">Explore internships, job shadows, and networking events</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <span className="text-muted-foreground">New opportunities available</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                  <span className="text-muted-foreground">Application deadlines approaching</span>
+                </div>
+              </div>
+            </Card>
+          </Link>
 
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              Upcoming Tasks
-            </h3>
-            <p className="text-muted-foreground text-sm">No upcoming tasks at this time.</p>
-          </Card>
+          {/* Upcoming Sessions Card */}
+          <Link to="/sessions">
+            <Card className="p-6 hover:shadow-lg transition-all cursor-pointer group">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Upcoming Sessions
+                </h3>
+                <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">View all →</span>
+              </div>
+              <p className="text-muted-foreground text-sm mb-4">Join live sessions and workshops</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <span className="text-muted-foreground">Sessions scheduled this week</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                  <span className="text-muted-foreground">RSVP to reserve your spot</span>
+                </div>
+              </div>
+            </Card>
+          </Link>
         </div>
       </div>
     </div>
