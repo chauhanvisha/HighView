@@ -13,7 +13,7 @@ const studentNavItems = [
 const staffNavItems = [
   { name: 'Home', href: '/' },
   { name: 'Dashboard', href: '/dashboard' },
-  { name: 'Analytics', href: '/analytics' },
+  { name: 'Reports', href: '/analytics' },
   { name: 'Cohort', href: '/cohort' },
   { name: 'Opportunities', href: '/explore' },
   { name: 'Courses', href: '/courses' },

@@ -102,7 +102,7 @@ export default function AnalyticsPage() {
         <div className="mb-8">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Analytics</h1>
+              <h1 className="text-3xl font-bold mb-2">Reports</h1>
               <p className="text-muted-foreground">Comprehensive insights into student engagement and performance</p>
             </div>
             <div className="flex gap-3 items-center">
