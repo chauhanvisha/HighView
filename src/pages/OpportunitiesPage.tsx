@@ -156,9 +156,6 @@ export default function OpportunitiesPage() {
             <nav className="flex gap-8">
               <a href="/" className="text-gray-600 hover:text-gray-900">Home</a>
               <a href="/explore" className="text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Explore</a>
-              {userRole === 'staff' && (
-                <a href="/mentors" className="text-gray-600 hover:text-gray-900">Mentors</a>
-              )}
               <a href="/profile" className="text-gray-600 hover:text-gray-900">Profile</a>
             </nav>
             <div className="ml-auto flex items-center gap-4">
