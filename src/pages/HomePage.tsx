@@ -6,8 +6,9 @@ import FeaturesSection from '../components/FeaturesSection'
 import StatsSection from '../components/StatsSection'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
-import { TrendingUp, Clock, Award, Target, MessageCircle, X, Briefcase, Calendar } from 'lucide-react'
+import { MessageCircle, X, Calendar, Brain, Layers, CheckSquare } from 'lucide-react'
 import CohortPage from './CohortPage'
+import { cohortStudents } from '../data/transformStudents'
 
 // FAQ Responses
 const FAQ_RESPONSES: Record<string, string> = {
@@ -408,6 +409,37 @@ export default function HomePage() {
   }
 
   // Student Dashboard
+  const studentData = cohortStudents.find(s => s.email === user?.email)
+  const pillars = [
+    {
+      icon: Brain,
+      label: 'AI Learning',
+      value: studentData?.ai ?? null,
+      color: 'text-violet-600',
+      bg: 'bg-violet-50',
+      bar: 'bg-violet-500',
+      description: 'AI & technology skill engagement',
+    },
+    {
+      icon: Layers,
+      label: 'Experiential Learning',
+      value: studentData?.experiential ?? null,
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50',
+      bar: 'bg-emerald-500',
+      description: 'Hands-on and real-world learning',
+    },
+    {
+      icon: CheckSquare,
+      label: 'Session Attendance',
+      value: studentData?.sessionAttendance ?? null,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
+      bar: 'bg-blue-500',
+      description: 'Attendance rate across all sessions',
+    },
+  ]
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-50 py-8">
       <div className="container mx-auto px-4">
@@ -417,66 +449,57 @@ export default function HomePage() {
           className="mb-8"
         >
           <h1 className="text-4xl font-bold mb-2">My Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user?.name}! Track your progress and performance.</p>
+          <p className="text-muted-foreground">Welcome back, {user?.name}! Here's your learning progress.</p>
         </motion.div>
 
-        {/* Student Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[
-            { icon: TrendingUp, label: 'My Engagement', value: '—', color: 'text-green-600', bg: 'bg-green-50' },
-            { icon: Clock, label: 'Attendance Rate', value: '—', color: 'text-blue-600', bg: 'bg-blue-50' },
-            { icon: Award, label: 'Current Grade', value: '—', color: 'text-amber-600', bg: 'bg-amber-50' },
-            { icon: Target, label: 'Sessions Attended', value: '—', color: 'text-purple-600', bg: 'bg-purple-50' },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                    <p className="text-3xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Available after sessions start</p>
+        {/* Pillar Progress */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {pillars.map((pillar, index) => {
+            const pct = pillar.value !== null ? Math.round(pillar.value) : null
+            return (
+              <motion.div
+                key={pillar.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="p-6 hover:shadow-lg transition-shadow">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`${pillar.bg} p-2.5 rounded-lg`}>
+                      <pillar.icon className={`h-5 w-5 ${pillar.color}`} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{pillar.label}</p>
+                      <p className="text-xs text-muted-foreground">{pillar.description}</p>
+                    </div>
                   </div>
-                  <div className={`${stat.bg} p-3 rounded-full`}>
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  <div className="mb-2 flex items-end justify-between">
+                    <span className={`text-3xl font-bold ${pillar.color}`}>
+                      {pct !== null ? `${pct}%` : '—'}
+                    </span>
+                    {pct !== null && (
+                      <span className="text-xs text-muted-foreground mb-1">
+                        {pct >= 80 ? 'Excellent' : pct >= 60 ? 'On track' : 'Needs work'}
+                      </span>
+                    )}
                   </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div
+                      className={`${pillar.bar} h-2.5 rounded-full transition-all duration-700`}
+                      style={{ width: pct !== null ? `${pct}%` : '0%' }}
+                    />
+                  </div>
+                  {pct === null && (
+                    <p className="text-xs text-muted-foreground mt-2">Available after sessions start</p>
+                  )}
+                </Card>
+              </motion.div>
+            )
+          })}
         </div>
 
-        {/* Quick Access Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Opportunities Card */}
-          <Link to="/explore">
-            <Card className="p-6 hover:shadow-lg transition-all cursor-pointer group">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                  Opportunities
-                </h3>
-                <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">View all →</span>
-              </div>
-              <p className="text-muted-foreground text-sm mb-4">Explore internships, job shadows, and networking events</p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-muted-foreground">New opportunities available</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                  <span className="text-muted-foreground">Application deadlines approaching</span>
-                </div>
-              </div>
-            </Card>
-          </Link>
-
-          {/* Upcoming Sessions Card */}
+        {/* Quick Access */}
+        <div className="grid grid-cols-1 gap-6 max-w-md">
           <Link to="/sessions">
             <Card className="p-6 hover:shadow-lg transition-all cursor-pointer group">
               <div className="flex items-center justify-between mb-4">
