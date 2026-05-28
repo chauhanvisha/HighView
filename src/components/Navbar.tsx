@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { GraduationCap, Menu, X, Users, User, LogOut, UserCircle, Settings } from 'lucide-react'
+import { GraduationCap, Menu, X, Users, User, LogOut, UserCircle, Settings, Bell } from 'lucide-react'
 import { Button } from './ui/button'
+import { useSettings } from '../contexts/SettingsContext'
 
 const studentNavItems = [
   { name: 'Home', href: '/' },
@@ -20,9 +21,11 @@ const staffNavItems = [
 
 export default function Navbar() {
   const navigate = useNavigate()
+  const { settings, formatDate, formatTime } = useSettings()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
+  const [isNotifOpen, setIsNotifOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
 
@@ -112,6 +115,71 @@ export default function Navbar() {
                     </>
                   )}
                 </div>
+                {/* Notification Bell */}
+                {settings.notifInApp && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsNotifOpen(prev => !prev)}
+                      className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                      <Bell className="h-5 w-5 text-gray-600" />
+                      {settings.notifSessions && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                      )}
+                    </button>
+                    <AnimatePresence>
+                      {isNotifOpen && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setIsNotifOpen(false)} />
+                          <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            transition={{ duration: 0.15 }}
+                            className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-border z-50 overflow-hidden"
+                          >
+                            <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+                              <p className="font-semibold text-sm">Notifications</p>
+                              <span className="text-xs text-muted-foreground">{formatDate(new Date())} · {formatTime(new Date())}</span>
+                            </div>
+                            <div className="divide-y divide-border max-h-72 overflow-y-auto">
+                              {settings.notifSessions && (
+                                <div className="px-4 py-3 hover:bg-muted/40 transition-colors">
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium">Upcoming session reminder</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">Data Science Workshop — tomorrow at 2:00 PM</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              {settings.notifEmail && (
+                                <div className="px-4 py-3 hover:bg-muted/40 transition-colors">
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium">Email notifications active</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">You'll receive digest emails for important updates</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              {!settings.notifSessions && !settings.notifEmail && (
+                                <div className="px-4 py-8 text-center text-sm text-muted-foreground">No new notifications</div>
+                              )}
+                            </div>
+                            <div className="px-4 py-2 border-t border-border">
+                              <button onClick={() => { setIsNotifOpen(false); navigate('/profile') }}
+                                className="text-xs text-blue-600 hover:underline">Manage notification settings →</button>
+                            </div>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
                 {/* User Profile with Dropdown */}
                 <div className="relative">
                   <button

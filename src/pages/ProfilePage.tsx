@@ -1,52 +1,30 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Mail, Calendar, Award, TrendingUp, BookOpen, Briefcase, Bell, Shield, Moon, Globe, Sun, ChevronRight } from 'lucide-react'
+import { Mail, Calendar, Award, TrendingUp, BookOpen, Briefcase, Bell, Shield, Moon, Globe, Sun, ChevronRight, CheckCircle } from 'lucide-react'
 import { Button } from '../components/ui/button'
+import { useSettings } from '../contexts/SettingsContext'
 
 export default function ProfilePage() {
+  const { settings, updateSetting, formatDate, formatTime } = useSettings()
   const [user, setUser] = useState<any>(null)
   const [jobTitle, setJobTitle] = useState('')
   const [editingJobTitle, setEditingJobTitle] = useState(false)
   const [jobTitleInput, setJobTitleInput] = useState('')
   const [openSetting, setOpenSetting] = useState<string | null>(null)
-
-  // Settings state
-  const [notifEmail, setNotifEmail] = useState(true)
-  const [notifInApp, setNotifInApp] = useState(true)
-  const [notifSessions, setNotifSessions] = useState(false)
-  const [darkMode, setDarkMode] = useState(false)
-  const [timezone, setTimezone] = useState('America/Denver')
-  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY')
-  const [twoFactor, setTwoFactor] = useState(false)
+  const [pwCurrent, setPwCurrent] = useState('')
+  const [pwNew, setPwNew] = useState('')
+  const [pwStatus, setPwStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [now, setNow] = useState(new Date())
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
     if (userData) setUser(JSON.parse(userData))
-
-    const savedJobTitle = localStorage.getItem('staffJobTitle')
-    if (savedJobTitle) { setJobTitle(savedJobTitle); setJobTitleInput(savedJobTitle) }
-
-    const saved = localStorage.getItem('profileSettings')
-    if (saved) {
-      const s = JSON.parse(saved)
-      if (s.notifEmail !== undefined) setNotifEmail(s.notifEmail)
-      if (s.notifInApp !== undefined) setNotifInApp(s.notifInApp)
-      if (s.notifSessions !== undefined) setNotifSessions(s.notifSessions)
-      if (s.darkMode !== undefined) {
-        setDarkMode(s.darkMode)
-        document.documentElement.classList.toggle('dark', s.darkMode)
-      }
-      if (s.timezone) setTimezone(s.timezone)
-      if (s.dateFormat) setDateFormat(s.dateFormat)
-      if (s.twoFactor !== undefined) setTwoFactor(s.twoFactor)
-    }
+    const savedTitle = localStorage.getItem('staffJobTitle')
+    if (savedTitle) { setJobTitle(savedTitle); setJobTitleInput(savedTitle) }
+    // Live clock tick
+    const timer = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(timer)
   }, [])
-
-  const saveSettings = (updates: object) => {
-    const saved = localStorage.getItem('profileSettings')
-    const current = saved ? JSON.parse(saved) : {}
-    localStorage.setItem('profileSettings', JSON.stringify({ ...current, ...updates }))
-  }
 
   const saveJobTitle = () => {
     setJobTitle(jobTitleInput)
@@ -54,11 +32,14 @@ export default function ProfilePage() {
     setEditingJobTitle(false)
   }
 
-  const toggleSetting = (key: string) => setOpenSetting(prev => prev === key ? null : key)
-
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>
+  const handlePasswordChange = () => {
+    if (!pwCurrent || !pwNew) { setPwStatus('error'); return }
+    // Mock: simulate success after 600ms
+    setTimeout(() => { setPwStatus('success'); setPwCurrent(''); setPwNew('') }, 600)
+    setTimeout(() => setPwStatus('idle'), 3000)
   }
+
+  if (!user) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>
 
   const isStaff = user.type === 'staff' || user.type === 'admin'
 
@@ -71,28 +52,41 @@ export default function ProfilePage() {
     </button>
   )
 
+  const tzLabels: Record<string, string> = {
+    'America/Denver': 'Mountain Time (MT)',
+    'America/Chicago': 'Central Time (CT)',
+    'America/New_York': 'Eastern Time (ET)',
+    'America/Los_Angeles': 'Pacific Time (PT)',
+    'UTC': 'UTC',
+  }
+
   const settingsRows = [
     {
       key: 'notifications',
       icon: Bell,
       label: 'Notifications',
-      sub: 'Manage email and in-app alerts',
+      sub: `${[settings.notifEmail && 'Email', settings.notifInApp && 'In-app', settings.notifSessions && 'Session reminders'].filter(Boolean).join(', ') || 'All off'}`,
       color: 'bg-blue-100 text-blue-600',
       content: (
         <div className="space-y-4">
           {[
-            { label: 'Email notifications', sub: 'Receive updates via email', val: notifEmail, set: (v: boolean) => { setNotifEmail(v); saveSettings({ notifEmail: v }) } },
-            { label: 'In-app alerts', sub: 'Show alerts inside the platform', val: notifInApp, set: (v: boolean) => { setNotifInApp(v); saveSettings({ notifInApp: v }) } },
-            { label: 'Session reminders', sub: 'Notify before upcoming sessions', val: notifSessions, set: (v: boolean) => { setNotifSessions(v); saveSettings({ notifSessions: v }) } },
+            { label: 'Email notifications', sub: 'Receive updates via email', key: 'notifEmail' as const, val: settings.notifEmail },
+            { label: 'In-app alerts', sub: 'Show alerts and badge in the navbar', key: 'notifInApp' as const, val: settings.notifInApp },
+            { label: 'Session reminders', sub: 'Notify before upcoming sessions', key: 'notifSessions' as const, val: settings.notifSessions },
           ].map(item => (
             <div key={item.label} className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-900">{item.label}</p>
                 <p className="text-xs text-gray-500">{item.sub}</p>
               </div>
-              <Toggle checked={item.val} onChange={item.set} />
+              <Toggle checked={item.val} onChange={(v) => updateSetting(item.key, v)} />
             </div>
           ))}
+          {settings.notifInApp && (
+            <p className="text-xs text-blue-600 bg-blue-50 rounded-lg p-2">
+              In-app alerts are on — check the bell icon in the navbar for notifications.
+            </p>
+          )}
         </div>
       ),
     },
@@ -100,23 +94,43 @@ export default function ProfilePage() {
       key: 'security',
       icon: Shield,
       label: 'Privacy & Security',
-      sub: 'Password, two-factor authentication',
+      sub: `2FA ${settings.twoFactor ? 'enabled' : 'disabled'}`,
       color: 'bg-green-100 text-green-600',
       content: (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-900">Two-factor authentication</p>
-              <p className="text-xs text-gray-500">Add an extra layer of security</p>
+              <p className="text-xs text-gray-500">{settings.twoFactor ? 'Active — your account is more secure' : 'Add an extra layer of security'}</p>
             </div>
-            <Toggle checked={twoFactor} onChange={(v) => { setTwoFactor(v); saveSettings({ twoFactor: v }) }} />
+            <Toggle checked={settings.twoFactor} onChange={(v) => updateSetting('twoFactor', v)} />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-900 mb-2">Change password</p>
             <div className="space-y-2">
-              <input type="password" placeholder="Current password" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input type="password" placeholder="New password" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <Button size="sm" className="w-full">Update Password</Button>
+              <input
+                type="password"
+                placeholder="Current password"
+                value={pwCurrent}
+                onChange={e => { setPwCurrent(e.target.value); setPwStatus('idle') }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="password"
+                placeholder="New password"
+                value={pwNew}
+                onChange={e => { setPwNew(e.target.value); setPwStatus('idle') }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <Button size="sm" className="w-full" onClick={handlePasswordChange}>Update Password</Button>
+              {pwStatus === 'success' && (
+                <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg px-3 py-2 text-sm">
+                  <CheckCircle className="h-4 w-4" /> Password updated successfully
+                </div>
+              )}
+              {pwStatus === 'error' && (
+                <p className="text-red-600 text-xs">Please fill in both fields.</p>
+              )}
             </div>
           </div>
         </div>
@@ -126,20 +140,26 @@ export default function ProfilePage() {
       key: 'appearance',
       icon: Moon,
       label: 'Appearance',
-      sub: 'Theme and display preferences',
+      sub: settings.darkMode ? 'Dark mode' : 'Light mode',
       color: 'bg-purple-100 text-purple-600',
       content: (
         <div>
           <p className="text-sm font-medium text-gray-900 mb-3">Theme</p>
           <div className="flex gap-3">
             {[{ label: 'Light', icon: Sun, val: false }, { label: 'Dark', icon: Moon, val: true }].map(opt => (
-              <button key={opt.label} onClick={() => { setDarkMode(opt.val); saveSettings({ darkMode: opt.val }); document.documentElement.classList.toggle('dark', opt.val) }}
-                className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${darkMode === opt.val ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+              <button
+                key={opt.label}
+                onClick={() => updateSetting('darkMode', opt.val)}
+                className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-colors ${settings.darkMode === opt.val ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
+              >
                 <opt.icon className="h-5 w-5" />
                 <span className="text-sm font-medium">{opt.label}</span>
               </button>
             ))}
           </div>
+          <p className="text-xs text-gray-500 mt-3">
+            Currently: <span className="font-medium">{settings.darkMode ? 'Dark' : 'Light'}</span> — changes apply immediately across the entire app.
+          </p>
         </div>
       ),
     },
@@ -147,29 +167,37 @@ export default function ProfilePage() {
       key: 'locale',
       icon: Globe,
       label: 'Language & Region',
-      sub: 'Timezone, date format, and locale',
+      sub: `${tzLabels[settings.timezone] ?? settings.timezone} · ${settings.dateFormat}`,
       color: 'bg-orange-100 text-orange-600',
       content: (
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium text-gray-900 block mb-1">Timezone</label>
-            <select value={timezone} onChange={(e) => { setTimezone(e.target.value); saveSettings({ timezone: e.target.value }) }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="America/Denver">Mountain Time (MT)</option>
-              <option value="America/Chicago">Central Time (CT)</option>
-              <option value="America/New_York">Eastern Time (ET)</option>
-              <option value="America/Los_Angeles">Pacific Time (PT)</option>
-              <option value="UTC">UTC</option>
+            <select
+              value={settings.timezone}
+              onChange={e => updateSetting('timezone', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {Object.entries(tzLabels).map(([val, lbl]) => <option key={val} value={val}>{lbl}</option>)}
             </select>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-900 block mb-1">Date Format</label>
-            <select value={dateFormat} onChange={(e) => { setDateFormat(e.target.value); saveSettings({ dateFormat: e.target.value }) }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select
+              value={settings.dateFormat}
+              onChange={e => updateSetting('dateFormat', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
               <option value="YYYY-MM-DD">YYYY-MM-DD</option>
             </select>
+          </div>
+          {/* Live preview */}
+          <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+            <p className="text-xs text-orange-600 font-medium mb-1">Live preview</p>
+            <p className="text-sm font-semibold text-orange-900">{formatDate(now)}</p>
+            <p className="text-xs text-orange-700">{formatTime(now)} · {tzLabels[settings.timezone] ?? settings.timezone}</p>
           </div>
         </div>
       ),
@@ -198,7 +226,6 @@ export default function ProfilePage() {
               <div className="flex-1 text-center md:text-left">
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">{user.name}</h1>
 
-                {/* Job title — staff only */}
                 {isStaff && (
                   <div className="mb-3">
                     {editingJobTitle ? (
@@ -206,8 +233,8 @@ export default function ProfilePage() {
                         <input
                           type="text"
                           value={jobTitleInput}
-                          onChange={(e) => setJobTitleInput(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && saveJobTitle()}
+                          onChange={e => setJobTitleInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && saveJobTitle()}
                           placeholder="e.g., Program Coordinator"
                           className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
                           autoFocus
@@ -233,7 +260,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex items-center gap-2 justify-center md:justify-start">
                     <Calendar className="h-4 w-4" />
-                    <span className="text-sm">Joined {new Date().toLocaleDateString()}</span>
+                    <span className="text-sm">Joined {formatDate(new Date())}</span>
                   </div>
                 </div>
                 <span className={`px-4 py-1.5 rounded-full text-sm font-medium ${isStaff ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
@@ -243,7 +270,7 @@ export default function ProfilePage() {
 
               <Button
                 className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                onClick={() => isStaff ? setEditingJobTitle(true) : undefined}
+                onClick={() => isStaff && setEditingJobTitle(true)}
               >
                 Edit Profile
               </Button>
@@ -258,7 +285,7 @@ export default function ProfilePage() {
                   { icon: BookOpen, value: '5', label: 'Courses Enrolled', bg: 'bg-blue-100', color: 'text-blue-600', delay: 0.1 },
                   { icon: TrendingUp, value: '92%', label: 'Attendance Rate', bg: 'bg-green-100', color: 'text-green-600', delay: 0.2 },
                   { icon: Award, value: '850', label: 'Engagement Score', bg: 'bg-purple-100', color: 'text-purple-600', delay: 0.3 },
-                ].map((stat) => (
+                ].map(stat => (
                   <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: stat.delay }} className="bg-white rounded-xl shadow-lg p-6">
                     <div className="flex items-center gap-4">
@@ -298,14 +325,14 @@ export default function ProfilePage() {
             </>
           )}
 
-          {/* Settings — visible to all roles */}
+          {/* Settings — all roles */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }} className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Settings</h2>
             <div className="divide-y divide-gray-100">
-              {settingsRows.map((row) => (
+              {settingsRows.map(row => (
                 <div key={row.key}>
-                  <button onClick={() => toggleSetting(row.key)}
+                  <button onClick={() => setOpenSetting(prev => prev === row.key ? null : row.key)}
                     className="w-full flex items-center gap-4 py-4 hover:bg-gray-50 transition-colors rounded-lg px-2 text-left">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${row.color}`}>
                       <row.icon className="h-5 w-5" />
@@ -314,15 +341,13 @@ export default function ProfilePage() {
                       <p className="font-medium text-gray-900">{row.label}</p>
                       <p className="text-sm text-gray-500">{row.sub}</p>
                     </div>
-                    <ChevronRight className={`h-5 w-5 text-gray-400 transition-transform ${openSetting === row.key ? 'rotate-90' : ''}`} />
+                    <ChevronRight className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${openSetting === row.key ? 'rotate-90' : ''}`} />
                   </button>
                   <AnimatePresence>
                     {openSetting === row.key && (
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                        <div className="px-4 pb-4 pt-2">
-                          {row.content}
-                        </div>
+                        <div className="px-4 pb-5 pt-1">{row.content}</div>
                       </motion.div>
                     )}
                   </AnimatePresence>
