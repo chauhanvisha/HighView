@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, Video, Upload, X, CheckCircle, Loader2, Users, Brain, AlertCircle, CalendarPlus, ChevronDown, UserCheck, UserPlus, Edit, Trash2 } from 'lucide-react'
+import { Calendar, Clock, Video, Upload, X, CheckCircle, Loader2, Users, Brain, AlertCircle, CalendarPlus, ChevronDown, UserCheck, UserPlus, Edit, Trash2, BarChart3, Activity } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { videoService, VideoUploadProgress, VideoAnalysisResult } from '../services/videoService'
 import { addToCalendar } from '../utils/calendarUtils'
 import { realStudents } from '../data/transformStudents'
+import { SemesterSelector } from '../components/SemesterSelector'
+import { useSemester } from '../contexts/SemesterContext'
+import { getStatsBySemester } from '../data/semesterData'
 
 const recentActivities = [
   { event: 'Video Processed', detail: 'Data Science Workshop - 28 students detected', time: '2 hours ago' },
@@ -23,6 +26,7 @@ interface Session {
   enrolled: number
   rsvps: number
   registrations?: string[] // Array of student IDs who registered
+  requiredGrades?: string[]
 }
 
 export default function SessionsPage() {
@@ -47,6 +51,7 @@ export default function SessionsPage() {
     time: '',
     type: 'Virtual' as 'Virtual' | 'In-Person',
     instructor: '',
+    requiredGrades: [] as string[],
   })
   const [customSessions, setCustomSessions] = useState<Session[]>(() => {
     const saved = localStorage.getItem('sessions')
@@ -59,6 +64,9 @@ export default function SessionsPage() {
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [registeredStudentsModalOpen, setRegisteredStudentsModalOpen] = useState(false)
   const [selectedSessionForView, setSelectedSessionForView] = useState<Session | null>(null)
+
+  const { selectedSemester } = useSemester()
+  const stats = useMemo(() => getStatsBySemester(selectedSemester.id), [selectedSemester.id])
 
   // Generate sessions from real student data + custom sessions
   const sessions = useMemo(() => {
@@ -165,6 +173,7 @@ export default function SessionsPage() {
       time: '',
       type: 'Virtual',
       instructor: '',
+      requiredGrades: [],
     })
     setEditingSession(null)
     setSessionModalOpen(false)
@@ -178,6 +187,7 @@ export default function SessionsPage() {
       time: session.time,
       type: session.type,
       instructor: session.instructor,
+      requiredGrades: session.requiredGrades || [],
     })
     setSessionModalOpen(true)
   }
@@ -285,6 +295,7 @@ export default function SessionsPage() {
                   time: '',
                   type: 'Virtual',
                   instructor: '',
+                  requiredGrades: [],
                 })
                 setSessionModalOpen(true)
               }}
@@ -446,6 +457,33 @@ export default function SessionsPage() {
         {/* STAFF VIEW - Manage RSVPs Table */}
         {userRole === 'staff' && (
           <>
+            {/* Stat Boxes */}
+            <div className="flex justify-end mb-4">
+              <SemesterSelector />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+              {[
+                { title: "Today's Sessions", value: stats.activeSessions.toString(), icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-100' },
+                { title: 'Active Students', value: stats.totalStudents.toString(), icon: Users, color: 'text-green-600', bg: 'bg-green-100' },
+                { title: 'Average Attendance', value: `${stats.avgAttendance}%`, icon: BarChart3, color: 'text-purple-600', bg: 'bg-purple-100' },
+                { title: 'Engagement Score', value: `${(stats.avgEngagement / 10).toFixed(1)}/10`, icon: Activity, color: 'text-orange-600', bg: 'bg-orange-100' },
+              ].map((stat, i) => (
+                <motion.div key={stat.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: i * 0.1 }}>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                      <div className={`p-2 rounded-lg ${stat.bg}`}>
+                        <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-3xl font-bold">{stat.value}</div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
             {/* Manage RSVPs Table */}
             <div className="mb-12">
               <h2 className="text-2xl font-bold mb-6">Manage Sessions</h2>
@@ -828,6 +866,7 @@ export default function SessionsPage() {
                   time: '',
                   type: 'Virtual',
                   instructor: '',
+                  requiredGrades: [],
                 })
               }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -902,6 +941,38 @@ export default function SessionsPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Required Attendees by Grade Level</label>
+                <p className="text-xs text-gray-500 mb-3">Leave blank to allow all grade levels</p>
+                <div className="flex flex-wrap gap-3">
+                  {['Freshman', 'Sophomore', 'Junior', 'Senior'].map((grade) => (
+                    <label key={grade} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={sessionFormData.requiredGrades.includes(grade)}
+                        onChange={(e) => {
+                          setSessionFormData(prev => ({
+                            ...prev,
+                            requiredGrades: e.target.checked
+                              ? [...prev.requiredGrades, grade]
+                              : prev.requiredGrades.filter(g => g !== grade)
+                          }))
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{grade}</span>
+                    </label>
+                  ))}
+                </div>
+                {sessionFormData.requiredGrades.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {sessionFormData.requiredGrades.map(g => (
+                      <span key={g} className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">{g}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={handleAddSession}
@@ -920,6 +991,7 @@ export default function SessionsPage() {
                       time: '',
                       type: 'Virtual',
                       instructor: '',
+                      requiredGrades: [],
                     })
                   }}
                 >

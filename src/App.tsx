@@ -11,7 +11,6 @@ import StudentLoginPage from './pages/StudentLoginPage'
 import TeacherLoginPage from './pages/TeacherLoginPage'
 import StudentSignupPage from './pages/StudentSignupPage'
 import TeacherSignupPage from './pages/TeacherSignupPage'
-import DashboardPage from './pages/DashboardPage'
 import AttendancePage from './pages/AttendancePage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AnalyticsPage from './pages/AnalyticsPage'
@@ -35,11 +34,6 @@ function App() {
       <Route path="/signup/staff" element={<TeacherSignupPage />} />
       <Route element={<MainLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute allowedRoles={['staff', 'admin']}>
-            <DashboardPage />
-          </ProtectedRoute>
-        } />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/students" element={
