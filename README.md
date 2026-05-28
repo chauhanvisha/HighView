@@ -1,186 +1,91 @@
-# Studentlytics
+# HighView — Student Engagement Platform
 
-**AI-powered attendance and engagement tracking for universities and cohort programs.**
-
-Upload a classroom recording. Get per-student attendance, engagement scores, and participation data — automatically, with no hardware changes and no behavior change from instructors.
+A web application for managing student cohorts, sessions, courses, and opportunities. Built for both staff and students, with role-based views, profile management, and settings that work across the entire app.
 
 ---
 
 ## What It Does
 
-Studentlytics processes classroom video recordings using face recognition and audio transcription to produce:
+**Staff**
+- View and manage the full student cohort with engagement metrics, attendance, and at-risk alerts
+- Create and manage sessions with grade-level attendance requirements
+- Track course enrollment, completion rates, and attendance distribution
+- Upload session recordings for AI-powered attendance analysis
+- Post and manage opportunities (internships, job shadows, events)
+- AI analytics chatbot connected to AWS for querying student data
 
-- **Attendance records** — who was present, confirmed by face recognition (95%+ accuracy)
-- **Engagement scores** — multi-factor score per student: visual presence + verbal participation + interaction quality + consistency
-- **Participation data** — words spoken, questions asked, camera-on time per student
-- **Camera-off detection** — students speaking with camera off are marked present, not absent
-- **At-risk alerts** — students who attend but never participate are flagged before they drop out
+**Students**
+- Dashboard showing pillar progress (AI Learning, Experiential Learning, Session Attendance)
+- Sessions page with mandatory vs. optional sessions highlighted by grade level
+- Course catalog with registration, enrollment tracking, and upcoming courses
+- LinkedIn/Handshake-style profile with bio, education, skills, and contact info
+- Opportunities page for browsing internships, job shadows, and events
 
-Processing a 60-minute class recording takes ~15 minutes. No cloud APIs. $0/video processing cost.
-
----
-
-## The Problem
-
-US universities lose ~15% of students to dropout each semester. By the time an instructor notices declining attendance, the student is already gone. Manual roll calls take 5-10 minutes of class time, produce no engagement data, and are easily gamed. LMS login logs tell you nothing about whether a student was actually paying attention.
-
-The data to catch at-risk students early exists — it's sitting in every institution's recording archive. Studentlytics makes it actionable.
-
----
-
-## Architecture
-
-```
-Video Recording (MP4/MOV/Zoom)
-         │
-         ▼
-┌─────────────────────────────────┐
-│      FastAPI Backend            │
-│   (runs on-campus, local only)  │
-│                                 │
-│  ┌──────────────┐  ┌─────────┐  │
-│  │ Face         │  │ Audio   │  │  ← runs in parallel
-│  │ Recognition  │  │ Whisper │  │
-│  │ (dlib HOG)   │  │ (tiny)  │  │
-│  └──────────────┘  └─────────┘  │
-│         │               │       │
-│         └───────┬───────┘       │
-│                 ▼               │
-│      Engagement Scoring         │
-│   visual(35%) + speech(35%)     │
-│   + interaction(20%)            │
-│   + consistency(10%)            │
-└─────────────────────────────────┘
-         │
-         ▼
-   React Dashboard
-   (attendance, engagement, at-risk)
-```
-
-**No student biometric data ever leaves the institution's network.** All face encodings and video processing run locally. FERPA and BIPA compliant by architecture.
+**Both**
+- Fully functional settings: dark mode, notifications, timezone/date format, password change
+- Notification bell in navbar driven by live settings state
 
 ---
 
-## Key Technical Decisions
+## Stack
 
-| Decision | Why |
-|---|---|
-| Local dlib (not AWS Rekognition) | $0/video vs ~$6-8/video at scale. No biometric data in cloud. FERPA/BIPA compliant. |
-| faster-whisper tiny + int8 | 4-8x faster than openai-whisper on CPU. Good enough for participation tracking. |
-| Parallel audio thread | Audio transcription runs concurrently with face processing → 40% faster total processing |
-| Adaptive detection scale | Full-res for ≤720px video (virtual meetings). 0.5x for 1280px. Prevents missing faces in small grid-view tiles. |
-| Proportional speech attribution | Grid meetings (multiple faces visible) → speech distributed by each student's camera-on time fraction |
-| 20% presence threshold | Student marked present if detected in ≥20% of sampled frames. Handles momentary frame drops. |
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Framer Motion, Recharts
+- **Auth:** Mock authentication via localStorage (Supabase integration planned)
+- **Data:** localStorage persistence for sessions, registrations, settings, profiles
+- **AI:** AWS Lambda chatbot for staff analytics queries
+- **Deployment:** Vercel — https://high-view-u3gz.vercel.app
 
 ---
 
-## Engagement Score Formula
+## Pages
 
-```
-visual        = (face_size / frame_height × 5) × match_confidence  [35%]
-participation = words_spoken / max_words_in_class                   [35%]
-interaction   = min(1.0, questions_asked × 0.05 / 0.2)             [20%]
-consistency   = 0.02 if (camera_on AND zero words)                  [10%]
-              = min(1.0, presence_ratio)                            [10%]
-
-engagement_score = (visual + participation + interaction + consistency) × 100
-```
-
-Camera-off students who speak >50 words are marked `present_camera_off` with a reduced score (no visual component).
+| Route | Staff | Student |
+|---|---|---|
+| `/` | Cohort dashboard + AI chatbot | Pillar progress dashboard |
+| `/sessions` | Manage sessions, upload recordings | View sessions, register, add to calendar |
+| `/courses` | Analytics, completion rates, attendance chart | My courses + course catalog with registration |
+| `/explore` | Manage opportunities | Browse opportunities |
+| `/cohort` | Full cohort table with filters | — |
+| `/profile` | Job title + settings | LinkedIn-style profile + settings |
+| `/login` | — | Sign in / sign up |
 
 ---
 
 ## Getting Started
-
-### Prerequisites
-
-- Python 3.10+
-- Node.js 18+
-- ffmpeg (`brew install ffmpeg` on Mac, `apt install ffmpeg` on Linux)
-- cmake (`brew install cmake`) — required for dlib
-
-### Backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
-First run downloads the faster-whisper tiny model (~75MB). Subsequent runs use the cached model.
-
-### Frontend
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open http://localhost:3006 (or next available port).
+Open http://localhost:5173
 
-### Enroll Students
+### Test Accounts
 
-1. Go to **Students** page
-2. Click any student card → upload a clear headshot photo
-3. System builds face encoding (takes ~2 seconds per photo)
-
-### Process a Recording
-
-1. Go to **Sessions** page
-2. Click **Upload Recording** on any session
-3. Upload an MP4/MOV file
-4. Wait ~15 min for a 60-min video
-5. Results appear in the session card
+Sign up on the login page and select **Student** or **Staff** as your role. All data is stored in your browser's localStorage.
 
 ---
 
-## API Reference
+## Key Features
 
-```
-POST /videos/upload          Upload video + start processing
-GET  /videos/{id}/status     Poll processing status
-GET  /videos                 List all processed videos
+**Role-based views** — staff and student see entirely different UIs for the same routes (home, courses, sessions, profile).
 
-POST /students/photo         Enroll student face (multipart: file, student_id, student_name)
-GET  /students/enrolled      List enrolled students
+**Global settings** — dark mode, timezone, and date format apply across the whole app via React Context, not just the settings page.
 
-GET  /health                 Backend status + enrolled count
-```
+**Mandatory sessions** — staff tag sessions by grade level (Freshman/Sophomore/Junior/Senior). Students see a "Required for You" section if their class year is set in their profile.
 
----
+**Pillar progress** — student home shows real completion percentages for AI Learning, Experiential Learning, and Session Attendance pulled from cohort data matched by email.
 
-## Privacy & Compliance
+**Course registration** — students register/drop courses, which persists to localStorage and reflects immediately in "My Courses".
 
-All processing is local. See [YC_PRIVACY_COMPLIANCE.md](./YC_PRIVACY_COMPLIANCE.md) for:
-- FERPA compliance approach
-- BIPA consent framework
-- GDPR data processing agreement template
-- Student consent form template
-
----
-
-## Stack
-
-**Backend:** Python, FastAPI, dlib (face_recognition), faster-whisper, OpenCV, ffmpeg
-
-**Frontend:** React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts, Framer Motion
-
-**Infrastructure:** Runs entirely on-premise. No cloud dependencies for core processing.
+**Student profile** — editable bio, school, major, class year, GPA, location, skills, phone, LinkedIn, GitHub. All persisted to localStorage.
 
 ---
 
 ## Roadmap
 
-- [ ] LMS integration: Canvas, Blackboard, Google Classroom (attendance sync)
-- [ ] Live video stream support (RTSP / Zoom SDK)
-- [ ] Email alerts for at-risk students (configurable thresholds)
-- [ ] Multi-session trend view per student
-- [ ] Export to CSV / PDF for institutional reporting
-- [ ] Consent management dashboard
-
----
-
-## License
-
-MIT
-
+- [ ] Supabase backend — replace all localStorage with real database + auth
+- [ ] Google OAuth login
+- [ ] Real notification delivery (email + push)
+- [ ] Live attendance tracking via video upload
+- [ ] Student-staff messaging
