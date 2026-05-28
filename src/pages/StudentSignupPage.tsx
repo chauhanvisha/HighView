@@ -10,6 +10,7 @@ export default function StudentSignupPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     fullName: '',
   })
   const [error, setError] = useState<string | null>(null)
@@ -18,6 +19,10 @@ export default function StudentSignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
     setLoading(true)
 
     try {
@@ -111,6 +116,27 @@ export default function StudentSignupPage() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Retype Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${formData.confirmPassword && formData.confirmPassword !== formData.password ? 'border-red-400' : formData.confirmPassword && formData.confirmPassword === formData.password ? 'border-green-400' : ''}`}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+              {formData.confirmPassword && formData.confirmPassword !== formData.password && (
+                <p className="text-xs text-red-500 mt-1">Passwords do not match</p>
+              )}
+              {formData.confirmPassword && formData.confirmPassword === formData.password && (
+                <p className="text-xs text-green-600 mt-1">Passwords match</p>
+              )}
             </div>
 
             {error && (
