@@ -12,7 +12,6 @@ const studentNavItems = [
 
 const staffNavItems = [
   { name: 'Home', href: '/' },
-  { name: 'Reports', href: '/analytics' },
   { name: 'Cohort', href: '/cohort' },
   { name: 'Opportunities', href: '/explore' },
   { name: 'Courses', href: '/courses' },

@@ -13,7 +13,6 @@ import StudentSignupPage from './pages/StudentSignupPage'
 import TeacherSignupPage from './pages/TeacherSignupPage'
 import AttendancePage from './pages/AttendancePage'
 import LeaderboardPage from './pages/LeaderboardPage'
-import AnalyticsPage from './pages/AnalyticsPage'
 import CohortPage from './pages/CohortPage'
 import StudentProfilePage from './pages/StudentProfilePage'
 import OpportunitiesPage from './pages/OpportunitiesPage'
@@ -51,11 +50,6 @@ function App() {
         <Route path="/leaderboard" element={
           <ProtectedRoute allowedRoles={['staff', 'admin']}>
             <LeaderboardPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/analytics" element={
-          <ProtectedRoute allowedRoles={['staff', 'admin']}>
-            <AnalyticsPage />
           </ProtectedRoute>
         } />
         <Route path="/cohort" element={
