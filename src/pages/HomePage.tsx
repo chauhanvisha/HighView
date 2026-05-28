@@ -1,33 +1,10 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import HeroSection from '../components/HeroSection'
-import FeaturesSection from '../components/FeaturesSection'
-import StatsSection from '../components/StatsSection'
-import { Button } from '../components/ui/button'
+import { Link, Navigate } from 'react-router-dom'
 import { Card } from '../components/ui/card'
 import { MessageCircle, X, Calendar, Brain, Layers, CheckSquare } from 'lucide-react'
 import CohortPage from './CohortPage'
 import { cohortStudents } from '../data/transformStudents'
-
-// FAQ Responses
-const FAQ_RESPONSES: Record<string, string> = {
-  'how does it work': '🎥 HighView uses AI to automatically track attendance from classroom videos!\n\nHere\'s the process:\n1. Upload a classroom video\n2. Our face recognition AI detects and recognizes student faces\n3. We track engagement, speaking time, and attendance\n4. View results in real-time dashboards\n\nPowered by local face recognition AI and Claude AI! 🤖',
-  'pricing': '💰 Simple, transparent pricing:\n\n🆓 Free Tier: Up to 100 students, 10 hours of video per month\n⭐ Pro ($49/month): Up to 500 students, unlimited video processing\n🏢 Enterprise (Custom): Unlimited students, dedicated support\n\nTry free tier - no credit card required!',
-  'features': '✨ Key Features:\n\n📊 Attendance Tracking: 95%+ accuracy\n🎯 Engagement Scoring: Head orientation analysis\n🗣️ Speaking Time: Participation analytics\n🤖 AI Analytics: Ask questions about your data\n📈 Real-time Dashboards: Live updates',
-  'get started': '🚀 Getting Started is Easy!\n\n1️⃣ Sign Up: Create free account\n2️⃣ Upload Student Photos: JPG or PNG format\n3️⃣ Upload Classroom Video: MP4 format\n4️⃣ View Results: Check dashboard in 5-15 minutes\n\n📧 Need help? demo@highview.com',
-  'contact': '📞 Contact Us:\n\n📧 Email: support@highview.com\n💬 Live Chat: Available 9 AM - 5 PM EST\n🌐 Website: highview.com',
-  'accurate': '🎯 Accuracy: 95%+ accurate\n• Face detection: 99%+ in good lighting\n• Face matching: 95%+ with quality photos\n\n💡 Depends on video quality, lighting, and clear student photos',
-}
-
-const quickQuestions = [
-  '🎥 How does it work?',
-  '💰 What are the pricing plans?',
-  '✨ What features do you offer?',
-  '🚀 How do I get started?',
-  '🎯 How accurate is it?',
-  '📧 How can I contact support?'
-]
 
 interface Message {
   role: 'user' | 'assistant'
@@ -221,98 +198,6 @@ function TeacherAIChatbot() {
   )
 }
 
-// FAQ Chatbot Component (for landing page)
-function FAQChatbot() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: '👋 Hi! I can help answer common questions about HighView. What would you like to know?' }
-  ])
-  const [input, setInput] = useState('')
-
-  const findBestMatch = (query: string): string => {
-    const q = query.toLowerCase()
-    
-    for (const [keywords, response] of Object.entries(FAQ_RESPONSES)) {
-      if (q.includes(keywords)) {
-        return response
-      }
-    }
-    
-    return `🤔 I'm not sure about that. Try asking about:\n\n${quickQuestions.slice(0, 4).map(q => `• ${q}`).join('\n')}\n\n📧 Or contact us: support@highview.com`
-  }
-
-  const sendMessage = () => {
-    if (!input.trim()) return
-
-    const userMsg: Message = { role: 'user', content: input }
-    setMessages(prev => [...prev, userMsg])
-
-    const response = findBestMatch(input)
-    
-    setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'assistant', content: response }])
-    }, 500)
-
-    setInput('')
-  }
-
-  return (
-    <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 z-50"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </button>
-
-      {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-t-lg">
-            <h3 className="font-bold text-lg">Quick Help</h3>
-            <p className="text-sm opacity-90">Ask me anything!</p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-500 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none shadow border border-gray-100'}`}>
-                  <p className="text-sm whitespace-pre-line">{msg.content}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {messages.length === 1 && (
-            <div className="p-3 border-t border-gray-200 bg-white">
-              <p className="text-xs text-gray-600 mb-2 font-semibold">Quick questions:</p>
-              <div className="grid grid-cols-2 gap-2">
-                {quickQuestions.slice(0, 4).map((q, idx) => (
-                  <button key={idx} onClick={() => setInput(q)} className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 text-left">{q}</button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="p-4 border-t border-gray-200">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Ask a question..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button onClick={sendMessage} disabled={!input.trim()} className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50">
-                →
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
 
 export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -342,60 +227,9 @@ export default function HomePage() {
     return () => window.removeEventListener('roleChanged', handleRoleChange)
   }, [])
 
-  // If not authenticated, show landing page
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
-    return (
-      <div>
-        <HeroSection />
-        <FeaturesSection />
-        <StatsSection />
-        <FAQChatbot />
-        
-        {/* CTA Section */}
-        <section className="py-20 px-4">
-          <div className="container mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-blue-100 via-blue-50 to-indigo-100 px-8 py-16 md:px-16 md:py-20"
-            >
-              <div className="absolute inset-0 opacity-30">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-300 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-300 rounded-full blur-3xl" />
-              </div>
-
-              <div className="relative z-10 text-center max-w-3xl mx-auto">
-                <motion.h2
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-8"
-                >
-                  Ready to transform your school?
-                </motion.h2>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                >
-                  <Button
-                    size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-base px-10 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-                  >
-                    Contact sales
-                  </Button>
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-      </div>
-    )
+    return <Navigate to="/login" replace />
   }
 
   // Teacher Dashboard
