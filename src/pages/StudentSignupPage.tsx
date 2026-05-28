@@ -11,7 +11,6 @@ export default function StudentSignupPage() {
     email: '',
     password: '',
     fullName: '',
-    institution: '',
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -27,7 +26,7 @@ export default function StudentSignupPage() {
         password: formData.password,
         fullName: formData.fullName,
         role: 'student',
-        institution: formData.institution,
+        institution: '',
       })
       
       window.location.href = '/'
@@ -112,18 +111,6 @@ export default function StudentSignupPage() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Institution</label>
-              <input
-                type="text"
-                value={formData.institution}
-                onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Your University"
-                required
-              />
             </div>
 
             {error && (

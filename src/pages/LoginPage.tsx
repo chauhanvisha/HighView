@@ -13,7 +13,6 @@ export default function LoginPage() {
     password: '',
     fullName: '',
     role: 'student',
-    institution: '',
     rememberMe: false,
   })
   const [error, setError] = useState<string | null>(null)
@@ -39,7 +38,7 @@ export default function LoginPage() {
           password: formData.password,
           fullName: formData.fullName,
           role: formData.role,
-          institution: formData.institution,
+          institution: '',
         })
       }
       
@@ -175,17 +174,6 @@ export default function LoginPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">Institution</label>
-                  <input
-                    type="text"
-                    value={formData.institution}
-                    onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Your University"
-                    required
-                  />
-                </div>
               </>
             )}
 
