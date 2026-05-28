@@ -58,8 +58,6 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5173
-
 ### Test Accounts
 
 Sign up on the login page and select **Student** or **Staff** as your role. All data is stored in your browser's localStorage.
