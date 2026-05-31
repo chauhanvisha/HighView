@@ -200,9 +200,20 @@ function TeacherAIChatbot() {
 
 
 export default function HomePage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
-  const [user, setUser] = useState<any>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('isAuthenticated') === 'true')
+  const [userRole, setUserRole] = useState<'staff' | 'student'>(() => {
+    try {
+      const userData = localStorage.getItem('user')
+      if (userData) return JSON.parse(userData).type || 'student'
+    } catch { /* ignore */ }
+    return 'student'
+  })
+  const [user, setUser] = useState<any>(() => {
+    try {
+      const userData = localStorage.getItem('user')
+      return userData ? JSON.parse(userData) : null
+    } catch { return null }
+  })
 
   useEffect(() => {
     const checkAuth = () => {
