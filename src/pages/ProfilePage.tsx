@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Mail, Calendar, Bell, Shield, Moon, Globe, Sun, ChevronRight,
+  Mail, Calendar, Bell, Shield, Moon, Globe, Sun, ChevronRight, CheckCircle,
   Briefcase, MapPin, Phone, GraduationCap, BookOpen, Tag, Edit2, X, Link as LinkIcon,
   Github,
 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { useSettings } from '../contexts/SettingsContext'
+import { authService } from '../services/authService'
 
 // ── Shared Toggle ─────────────────────────────────────────────────────────
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -394,6 +395,10 @@ export default function ProfilePage() {
   const [editingJobTitle, setEditingJobTitle] = useState(false)
   const [jobTitleInput, setJobTitleInput] = useState('')
   const [openSetting, setOpenSetting] = useState<string | null>(null)
+  const [pwCurrent, setPwCurrent] = useState('')
+  const [pwNew, setPwNew] = useState('')
+  const [pwStatus, setPwStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [pwError, setPwError] = useState('')
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -409,6 +414,23 @@ export default function ProfilePage() {
     setJobTitle(jobTitleInput)
     localStorage.setItem('staffJobTitle', jobTitleInput)
     setEditingJobTitle(false)
+  }
+
+  const handlePasswordChange = async () => {
+    if (!pwCurrent || !pwNew) { setPwError('Please fill in both fields.'); setPwStatus('error'); return }
+    if (pwNew.length < 6) { setPwError('New password must be at least 6 characters.'); setPwStatus('error'); return }
+    setPwStatus('loading')
+    setPwError('')
+    try {
+      await authService.changePassword(pwCurrent, pwNew)
+      setPwStatus('success')
+      setPwCurrent('')
+      setPwNew('')
+      setTimeout(() => setPwStatus('idle'), 3000)
+    } catch (err: any) {
+      setPwError(err.message || 'Failed to update password.')
+      setPwStatus('error')
+    }
   }
 
   if (!user) return <div className="min-h-screen flex items-center justify-center"><p>Loading…</p></div>
@@ -468,11 +490,25 @@ export default function ProfilePage() {
             </div>
             <Toggle checked={settings.twoFactor} onChange={(v) => updateSetting('twoFactor', v)} />
           </div>
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <p className="text-sm font-medium text-gray-900 mb-1">Password</p>
-            <p className="text-sm text-gray-500">
-              Password management is handled by your sign-in provider. To change your password, visit your account settings with the provider you used to sign up (e.g., Google).
-            </p>
+          <div>
+            <p className="text-sm font-medium text-gray-900 mb-2">Change password</p>
+            <div className="space-y-2">
+              <input type="password" placeholder="Current password" value={pwCurrent}
+                onChange={e => { setPwCurrent(e.target.value); setPwStatus('idle') }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <input type="password" placeholder="New password (min 6 characters)" value={pwNew}
+                onChange={e => { setPwNew(e.target.value); setPwStatus('idle') }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <Button size="sm" className="w-full" onClick={handlePasswordChange} disabled={pwStatus === 'loading'}>
+                {pwStatus === 'loading' ? 'Updating…' : 'Update Password'}
+              </Button>
+              {pwStatus === 'success' && (
+                <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg px-3 py-2 text-sm">
+                  <CheckCircle className="h-4 w-4" /> Password updated successfully
+                </div>
+              )}
+              {pwStatus === 'error' && <p className="text-red-600 text-xs">{pwError}</p>}
+            </div>
           </div>
         </div>
       ),
