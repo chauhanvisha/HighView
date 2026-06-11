@@ -2,6 +2,8 @@
 // In production, replace with actual API_URL from environment variable
 const USE_MOCK_AUTH = true // Set to false when backend is deployed
 
+import { addStudent } from './api'
+
 export interface User {
   id: number
   email: string
@@ -66,6 +68,30 @@ class AuthService {
       localStorage.setItem('access_token', authData.access_token)
       localStorage.setItem('user', JSON.stringify(authData.user))
       localStorage.setItem('isAuthenticated', 'true')
+
+      // Persist student enrollment to database (fire-and-forget — never blocks signup)
+      if (data.role === 'student') {
+        const enrolledAt = new Date().toISOString()
+        const record_id = `STU-${user.id}`
+        addStudent({
+          record_id,
+          student_id: record_id,
+          student_name: data.fullName,
+          student_email: data.email,
+          department: data.institution || '',
+          class_name: '',
+          teacher_name: '',
+          topic: '',
+          session_date: enrolledAt.split('T')[0],
+          attendance: 0,
+          engagement: 0,
+          grade: 0,
+          speaking_time: 0,
+          photo_url: '',
+          enrolled_at: enrolledAt,
+          role: 'student',
+        }).catch((err) => console.warn('Enrollment DB save failed (non-blocking):', err))
+      }
 
       return authData
     }
