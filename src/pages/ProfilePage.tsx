@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Mail, Calendar, Bell, Shield, Moon, Globe, Sun, ChevronRight, CheckCircle,
+  Mail, Calendar, Bell, Shield, Moon, Globe, Sun, ChevronRight,
   Briefcase, MapPin, Phone, GraduationCap, BookOpen, Tag, Edit2, X, Link as LinkIcon,
   Github,
 } from 'lucide-react'
@@ -394,9 +394,6 @@ export default function ProfilePage() {
   const [editingJobTitle, setEditingJobTitle] = useState(false)
   const [jobTitleInput, setJobTitleInput] = useState('')
   const [openSetting, setOpenSetting] = useState<string | null>(null)
-  const [pwCurrent, setPwCurrent] = useState('')
-  const [pwNew, setPwNew] = useState('')
-  const [pwStatus, setPwStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
@@ -412,12 +409,6 @@ export default function ProfilePage() {
     setJobTitle(jobTitleInput)
     localStorage.setItem('staffJobTitle', jobTitleInput)
     setEditingJobTitle(false)
-  }
-
-  const handlePasswordChange = () => {
-    if (!pwCurrent || !pwNew) { setPwStatus('error'); return }
-    setTimeout(() => { setPwStatus('success'); setPwCurrent(''); setPwNew('') }, 600)
-    setTimeout(() => setPwStatus('idle'), 3000)
   }
 
   if (!user) return <div className="min-h-screen flex items-center justify-center"><p>Loading…</p></div>
@@ -477,23 +468,11 @@ export default function ProfilePage() {
             </div>
             <Toggle checked={settings.twoFactor} onChange={(v) => updateSetting('twoFactor', v)} />
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900 mb-2">Change password</p>
-            <div className="space-y-2">
-              <input type="password" placeholder="Current password" value={pwCurrent}
-                onChange={e => { setPwCurrent(e.target.value); setPwStatus('idle') }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <input type="password" placeholder="New password" value={pwNew}
-                onChange={e => { setPwNew(e.target.value); setPwStatus('idle') }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-              <Button size="sm" className="w-full" onClick={handlePasswordChange}>Update Password</Button>
-              {pwStatus === 'success' && (
-                <div className="flex items-center gap-2 text-green-700 bg-green-50 rounded-lg px-3 py-2 text-sm">
-                  <CheckCircle className="h-4 w-4" /> Password updated successfully
-                </div>
-              )}
-              {pwStatus === 'error' && <p className="text-red-600 text-xs">Please fill in both fields.</p>}
-            </div>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <p className="text-sm font-medium text-gray-900 mb-1">Password</p>
+            <p className="text-sm text-gray-500">
+              Password management is handled by your sign-in provider. To change your password, visit your account settings with the provider you used to sign up (e.g., Google).
+            </p>
           </div>
         </div>
       ),
