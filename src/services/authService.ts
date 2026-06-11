@@ -90,7 +90,7 @@ class AuthService {
           photo_url: '',
           enrolled_at: enrolledAt,
           role: 'student',
-        }).catch((err) => console.warn('Enrollment DB save failed (non-blocking):', err))
+        }).catch(() => { /* non-blocking — enrollment saved locally */ })
       }
 
       return authData

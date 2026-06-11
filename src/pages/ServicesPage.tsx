@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BarChart3, BookOpen, Users, TrendingUp, ChevronDown, Check, Brain } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
@@ -127,6 +128,7 @@ const services = [
 ]
 
 export default function ServicesPage() {
+  const navigate = useNavigate()
   const [expandedService, setExpandedService] = useState<string | null>(null)
 
   const toggleService = (title: string) => {
@@ -262,10 +264,10 @@ export default function ServicesPage() {
                 Start your free trial today - no credit card required
               </p>
               <div className="flex gap-4 justify-center">
-                <button className="px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                <button onClick={() => navigate('/signup/student')} className="px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                   Get Started Free
                 </button>
-                <button className="px-8 py-3 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
+                <button onClick={() => navigate('/signup/staff')} className="px-8 py-3 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
                   Schedule Demo
                 </button>
               </div>

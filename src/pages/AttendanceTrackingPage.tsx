@@ -5,12 +5,20 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { realStudents } from '../data/transformStudents'
 
+interface AttendanceRecord {
+  id: string
+  studentName: string
+  studentId: string
+  status: string
+  notes: string
+}
+
 export default function AttendanceTrackingPage() {
   const navigate = useNavigate()
   const { sessionId } = useParams()
 
   // Generate real attendance records from realStudents
-  const initialRecords = useMemo(() => {
+  const initialRecords = useMemo<AttendanceRecord[]>(() => {
     return realStudents.slice(0, 25).map((student) => ({
       id: student.id,
       studentName: student.name,
@@ -20,7 +28,10 @@ export default function AttendanceTrackingPage() {
     }))
   }, [])
 
-  const [attendanceRecords, setAttendanceRecords] = useState(initialRecords)
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>(() => {
+    const saved = localStorage.getItem(`attendance_${sessionId || 'default'}`)
+    return saved ? JSON.parse(saved) as AttendanceRecord[] : initialRecords
+  })
 
   // Calculate session stats from real data
   const sessionData = useMemo(() => {
@@ -42,13 +53,15 @@ export default function AttendanceTrackingPage() {
   }, [sessionId, attendanceRecords])
 
   const handleStatusChange = (id: string, newStatus: string) => {
-    setAttendanceRecords(records =>
-      records.map(record =>
+    setAttendanceRecords((records: AttendanceRecord[]) => {
+      const updated = records.map((record: AttendanceRecord) =>
         record.id === id ? { ...record, status: newStatus } : record
       )
-    )
-    // Auto-save to backend when status changes
-    console.log('Saving attendance record:', id)
+      // Persist attendance to localStorage keyed by sessionId
+      const key = `attendance_${sessionId || 'default'}`
+      localStorage.setItem(key, JSON.stringify(updated))
+      return updated
+    })
   }
 
   return (

@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function AddOpportunityPage() {
   const navigate = useNavigate()
+  const [saved, setSaved] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -23,10 +24,17 @@ export default function AddOpportunityPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would save to backend
-    console.log('Saving opportunity:', formData)
-    alert('Opportunity added successfully!')
-    navigate('/explore')
+    const opportunity = {
+      id: Date.now(),
+      ...formData,
+      tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+      spotsLeft: formData.spots ? parseInt(formData.spots) : null,
+      createdAt: new Date().toISOString(),
+    }
+    const existing = JSON.parse(localStorage.getItem('opportunities') || '[]')
+    localStorage.setItem('opportunities', JSON.stringify([opportunity, ...existing]))
+    setSaved(true)
+    setTimeout(() => navigate('/explore'), 1500)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -240,10 +248,10 @@ export default function AddOpportunityPage() {
                 <div className="flex gap-4 pt-4">
                   <Button
                     type="submit"
+                    disabled={saved}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    Add Opportunity
+                    {saved ? <><CheckCircle className="h-4 w-4 mr-2" />Saved!</> : <><Save className="h-4 w-4 mr-2" />Add Opportunity</>}
                   </Button>
                   <Button
                     type="button"

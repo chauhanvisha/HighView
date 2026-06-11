@@ -458,7 +458,17 @@ function StaffCoursesView() {
             </div>
             <div className="flex gap-3 items-center">
               <SemesterSelector />
-              <Button>
+              <Button onClick={() => {
+                const rows = [
+                  ['Course', 'Audience', 'Students', 'Completion Rate', 'Duration'],
+                  ...courses.map((c: any) => [c.title, c.audience, c.students, `${c.completionRate ?? '—'}%`, c.duration ?? '—'])
+                ]
+                const csv = rows.map(r => r.map((v: any) => `"${v}"`).join(',')).join('\n')
+                const a = document.createElement('a')
+                a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+                a.download = `courses_${selectedSemester.name.replace(/\s+/g, '_')}.csv`
+                a.click()
+              }}>
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
               </Button>

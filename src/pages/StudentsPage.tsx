@@ -3,37 +3,8 @@ import { Search, Plus, Eye, Mail, BarChart3, ChevronLeft, ChevronRight, ArrowUpD
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { realStudents } from '../data/transformStudents'
-
-// Load CSV data
-// async function loadCSVData(): Promise<StudentRecord[]> {
-//   try {
-//     const response = await fetch('/student.csv')
-//     const text = await response.text()
-//     const lines = text.split('\n')
-//     const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim())
-//     
-//     const data: StudentRecord[] = []
-//     for (let i = 1; i < lines.length; i++) {
-//       if (!lines[i].trim()) continue
-//       const values = parseCSVLine(lines[i])
-//       const record: any = {}
-//       headers.forEach((header, index) => {
-//         const value = values[index]
-//         if (['attendance', 'engagement', 'grade', 'speaking_time'].includes(header)) {
-//           record[header] = parseFloat(value)
-//         } else {
-//           record[header] = value
-//         }
-//       })
-//       data.push(record)
-//     }
-//     return data
-//   } catch (error) {
-//     console.error('Error loading CSV:', error)
-//     return []
-//   }
-// }
 
 
 const getStatusColor = (attendance: number) => {
@@ -43,6 +14,7 @@ const getStatusColor = (attendance: number) => {
 }
 
 export default function StudentsPage() {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterClass, setFilterClass] = useState('all')
   const [apiStudents, setApiStudents] = useState<any[]>([])
@@ -51,6 +23,8 @@ export default function StudentsPage() {
   const [sortColumn, setSortColumn] = useState<'student_id' | 'student_name' | 'class_name' | 'attendance' | 'engagement'>('student_name')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [addStudentModalOpen, setAddStudentModalOpen] = useState(false)
+  const [addStudentError, setAddStudentError] = useState<string | null>(null)
+  const [addStudentSuccess, setAddStudentSuccess] = useState(false)
   const [newStudentForm, setNewStudentForm] = useState({
     id: '',
     name: '',
@@ -89,95 +63,27 @@ export default function StudentsPage() {
         
         // Combine with custom students
         const allStudents = [...transformedStudents, ...customStudents]
-        console.log('Loaded students:', allStudents)
         setApiStudents(allStudents)
         setError(null)
-      } catch (err) {
-        console.error('Error loading students:', err)
-        // Use real data as fallback
-        const mockStudents = [
-          {
-            student_id: '10001',
-            student_name: 'Student 10001',
-            student_email: 'student10001@university.edu',
-            class_name: 'Quantum Mechanics',
-            attendance: 90.8,
-            engagement: 65.6,
-            grade: 71,
-            teacher_name: 'Dr. Brown',
-            session_date: '2025-09-26',
-            photo_url: '👨‍🎓',
-            department: 'Mathematics',
-            topic: 'Algorithm Design',
-            speaking_time: 119,
-            record_id: 'record_test001#10001'
-          },
-          {
-            student_id: '10011',
-            student_name: 'Student 10011',
-            student_email: 'student10011@university.edu',
-            class_name: 'Organic Chemistry',
-            attendance: 80.9,
-            engagement: 78.1,
-            grade: 76,
-            teacher_name: 'Prof. Davis',
-            session_date: '2025-10-25',
-            photo_url: '👩‍🎓',
-            department: 'Biology',
-            topic: 'Algorithm Design',
-            speaking_time: 64,
-            record_id: 'record_test001#10011'
-          },
-          {
-            student_id: '10018',
-            student_name: 'Student 10018',
-            student_email: 'student10018@university.edu',
-            class_name: 'Statistics 101',
-            attendance: 97.1,
-            engagement: 78.7,
-            grade: 95,
-            teacher_name: 'Dr. Johnson',
-            session_date: '2025-10-26',
-            photo_url: '👨‍🎓',
-            department: 'Biology',
-            topic: 'Chemical Bonding',
-            speaking_time: 68,
-            record_id: 'record_test018#10018'
-          },
-          {
-            student_id: '10007',
-            student_name: 'Student 10007',
-            student_email: 'student10007@university.edu',
-            class_name: 'Statistics 101',
-            attendance: 64.5,
-            engagement: 74.3,
-            grade: 86,
-            teacher_name: 'Dr. Brown',
-            session_date: '2025-10-11',
-            photo_url: '👨‍🎓',
-            department: 'Engineering',
-            topic: 'Newtonian Mechanics',
-            speaking_time: 80,
-            record_id: 'record_test007#10007'
-          },
-          {
-            student_id: '10020',
-            student_name: 'Student 10020',
-            student_email: 'student10020@university.edu',
-            class_name: 'General Chemistry',
-            attendance: 62.1,
-            engagement: 63.7,
-            grade: 86,
-            teacher_name: 'Prof. Davis',
-            session_date: '2025-10-22',
-            photo_url: '👩‍🎓',
-            department: 'Biology',
-            topic: 'Wave Physics',
-            speaking_time: 96,
-            record_id: 'record_test020#10020'
-          }
-        ]
-        setApiStudents(mockStudents)
+      } catch {
+        // Fall back to base student data on any load error
+        const fallback = realStudents.map(student => ({
+          student_id: student.id,
+          student_name: student.name,
+          student_email: student.email,
+          class_name: student.major,
+          attendance: student.attendanceRate,
+          engagement: student.engagementScore,
+          grade: Math.round(student.gpa * 25),
+          teacher_name: 'HighView Staff',
+          session_date: student.enrollmentDate,
+          photo_url: student.picture,
+          department: student.university,
+          topic: student.cohort,
+          speaking_time: Math.round(student.sessionsAttended * 10),
+          record_id: `${student.id}_${student.name.replace(/\s/g, '_')}`
+        }))
+        setApiStudents(fallback)
         setError(null)
       } finally {
         setLoading(false)
@@ -190,9 +96,9 @@ export default function StudentsPage() {
   // Handler for adding a new student
   const handleAddStudent = async () => {
     try {
-      // Validate form
+      setAddStudentError(null)
       if (!newStudentForm.id || !newStudentForm.name || !newStudentForm.email) {
-        alert('Please fill in all required fields (ID, Name, Email)')
+        setAddStudentError('Please fill in all required fields: ID, Name, and Email.')
         return
       }
 
@@ -223,25 +129,17 @@ export default function StudentsPage() {
       
       // Save to localStorage
       localStorage.setItem('customStudents', JSON.stringify(customStudents))
-      console.log('Student added to localStorage:', newStudent)
-      
-      // Update UI by adding to current list
+
+      // Update UI
       setApiStudents(prev => [...prev, newStudent])
-      
-      // Close modal and reset form
-      setAddStudentModalOpen(false)
-      setNewStudentForm({
-        id: '',
-        name: '',
-        email: '',
-        class_id: '',
-        class_name: ''
-      })
-      
-      alert('Student added successfully!')
-    } catch (err) {
-      console.error('Error adding student:', err)
-      alert('Failed to add student. Please try again.')
+      setAddStudentSuccess(true)
+      setTimeout(() => {
+        setAddStudentSuccess(false)
+        setAddStudentModalOpen(false)
+        setNewStudentForm({ id: '', name: '', email: '', class_id: '', class_name: '' })
+      }, 1200)
+    } catch {
+      setAddStudentError('Failed to add student. Please try again.')
     }
   }
 
@@ -436,13 +334,16 @@ export default function StudentsPage() {
                       <td className="p-4 text-sm text-muted-foreground">{student.session_date}</td>
                       <td className="p-4">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="View profile"
+                            onClick={() => navigate(`/cohort/${student.student_id}`)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="Send email"
+                            onClick={() => window.location.href = `mailto:${student.student_email}`}>
                             <Mail className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="View analytics"
+                            onClick={() => navigate(`/cohort/${student.student_id}`)}>
                             <BarChart3 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -491,13 +392,15 @@ export default function StudentsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4">
-                    <Button size="sm" variant="outline" className="flex-1">
+                    <Button size="sm" variant="outline" className="flex-1"
+                      onClick={() => navigate(`/cohort/${student.student_id || student.id}`)}>
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
+                    <Button size="sm" variant="outline" className="flex-1"
+                      onClick={() => window.location.href = `mailto:${student.student_email || student.email}`}>
                       <Mail className="h-4 w-4 mr-1" />
-                      Message
+                      Email
                     </Button>
                   </div>
                 </Card>
@@ -614,7 +517,14 @@ export default function StudentsPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t bg-muted/30 flex gap-3">
+            <div className="p-6 border-t bg-muted/30">
+              {addStudentError && (
+                <p className="text-sm text-red-600 mb-3">{addStudentError}</p>
+              )}
+              {addStudentSuccess && (
+                <p className="text-sm text-green-600 mb-3">Student added successfully!</p>
+              )}
+              <div className="flex gap-3">
               <Button
                 onClick={handleAddStudent}
                 className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
@@ -625,17 +535,14 @@ export default function StudentsPage() {
                 variant="outline"
                 onClick={() => {
                   setAddStudentModalOpen(false)
-                  setNewStudentForm({
-                    id: '',
-                    name: '',
-                    email: '',
-                    class_id: '',
-                    class_name: ''
-                  })
+                  setAddStudentError(null)
+                  setAddStudentSuccess(false)
+                  setNewStudentForm({ id: '', name: '', email: '', class_id: '', class_name: '' })
                 }}
               >
                 Cancel
               </Button>
+              </div>
             </div>
           </motion.div>
         </div>

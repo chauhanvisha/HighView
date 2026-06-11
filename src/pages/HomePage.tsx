@@ -20,7 +20,7 @@ function TeacherAIChatbot() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const API_URL = 'https://o35e0gmfl8.execute-api.us-east-1.amazonaws.com/prod/chat'
+  const API_URL = import.meta.env.VITE_CHATBOT_API_URL as string
 
   const suggestions = [
     'How many students attended?',
@@ -39,81 +39,47 @@ function TeacherAIChatbot() {
     setLoading(true)
 
     try {
-      console.log('=== CHATBOT DEBUG START ===')
-      console.log('1. Sending message to API:', currentInput)
-      console.log('2. API URL:', API_URL)
-      
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: currentInput })
       })
 
-      console.log('3. API Response status:', response.status)
-      console.log('4. API Response headers:', Object.fromEntries(response.headers.entries()))
-
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('5. API Error response:', errorText)
-        throw new Error(`API returned status ${response.status}: ${errorText}`)
+        throw new Error(`Request failed (${response.status}): ${errorText}`)
       }
 
       const responseText = await response.text()
-      console.log('6. Raw API Response:', responseText)
-      
       let data
       try {
         data = JSON.parse(responseText)
-        console.log('7. Parsed API Response:', data)
-      } catch (parseError) {
-        console.error('8. Failed to parse JSON:', parseError)
-        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`)
+      } catch {
+        throw new Error('Unexpected response from AI service. Please try again.')
       }
-      
-      // Handle different possible response formats
+
+      // Handle different possible response formats from the API
       let botResponse = ''
-      
       if (data.response) {
         botResponse = data.response
-        console.log('9. Using data.response')
       } else if (data.body) {
-        console.log('10. Found data.body, parsing...')
         const bodyData = typeof data.body === 'string' ? JSON.parse(data.body) : data.body
         botResponse = bodyData.response || bodyData.message || JSON.stringify(bodyData)
       } else if (data.message) {
         botResponse = data.message
-        console.log('11. Using data.message')
       } else if (data.answer) {
         botResponse = data.answer
-        console.log('12. Using data.answer')
       } else {
-        console.log('13. No standard field found, using full data')
         botResponse = JSON.stringify(data, null, 2)
       }
-      
-      console.log('14. Final bot response:', botResponse)
-      console.log('=== CHATBOT DEBUG END ===')
-      
-      const botMessage: Message = { role: 'assistant', content: botResponse }
-      setMessages(prev => [...prev, botMessage])
+
+      setMessages(prev => [...prev, { role: 'assistant', content: botResponse }])
 
     } catch (error) {
-      console.error('=== CHATBOT ERROR ===')
-      console.error('Error details:', error)
-      console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error)
-      if (error instanceof Error) {
-        console.error('Error message:', error.message)
-        console.error('Error stack:', error.stack)
-      }
-      console.error('=== ERROR END ===')
-      
-      const errorMessage: Message = { 
-        role: 'assistant', 
-        content: `❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}\n\n🔍 Check browser console (F12) for detailed logs.\n\nCommon issues:\n• CORS not enabled on API\n• Wrong API endpoint\n• API not deployed` 
-      }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Sorry, I couldn't process that request. ${error instanceof Error ? error.message : 'Please try again.'}`
+      }])
     } finally {
       setLoading(false)
     }

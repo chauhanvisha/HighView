@@ -298,7 +298,6 @@ export default function CohortPage() {
   }, [search, yearFilter, statusFilter, sortColumn, sortDirection])
 
   const toggleStudent = (id: string) => {
-    console.log('Toggling student:', id, 'Current selected:', selectedId)
     setSelectedId(prev => prev === id ? null : id)
   }
 

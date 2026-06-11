@@ -102,7 +102,17 @@ export default function AttendancePage() {
                 <CardDescription>View and manage student attendance for today's sessions</CardDescription>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => {
+                  const rows = [
+                    ['Student Name', 'Student ID', 'Session', 'Check In', 'Check Out', 'Duration', 'Status'],
+                    ...filteredData.map(r => [r.studentName, r.studentId, r.sessionName, r.checkIn, r.checkOut || '', r.duration, r.status])
+                  ]
+                  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n')
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
+                  a.download = `attendance_${selectedSemester.name.replace(/\s+/g, '_')}.csv`
+                  a.click()
+                }}>
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
