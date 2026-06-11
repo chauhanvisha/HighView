@@ -165,11 +165,6 @@ function InlineProfile({ student, onClose }: { student: Student; onClose: () => 
                   </div>
                 </div>
 
-                <div className="flex gap-2 flex-wrap pt-2">
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">Draft check-in</Button>
-                  <Button size="sm" variant="outline">Log note</Button>
-                  <Button size="sm" variant="outline">Flag for follow-up</Button>
-                </div>
               </div>
             </div>
           </div>

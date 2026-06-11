@@ -26,7 +26,6 @@ type SortDirection = 'asc' | 'desc'
 export default function LeaderboardPage() {
   const navigate = useNavigate()
   const { selectedSemester } = useSemester()
-  const [timeframe, setTimeframe] = useState<'week' | 'month' | 'semester'>('week')
   const [sortColumn, setSortColumn] = useState<SortColumn>('rank')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
@@ -145,7 +144,7 @@ export default function LeaderboardPage() {
       { category: 'Highest Engagement', student: topEngagement.name, score: `${topEngagement.engagementScore}%`, icon: Zap },
       { category: 'Best Attendance', student: topAttendance.name, score: `${topAttendance.attendanceRate}%`, icon: Target },
       { category: 'Most Participation', student: topParticipation.name, score: `${topParticipation.participationPoints} pts`, icon: Users },
-      { category: 'Fastest Improver', student: fastestImprover?.studentName || topEngagement.name, score: '+15%', icon: TrendingUp }
+      { category: 'Fastest Improver', student: fastestImprover?.studentName || topEngagement.name, score: fastestImprover ? `${fastestImprover.engagementScore}% eng.` : `${topEngagement.engagementScore}% eng.`, icon: TrendingUp }
     ]
   }, [semesterStudents, mockLeaderboardData])
 
@@ -191,26 +190,9 @@ export default function LeaderboardPage() {
           </div>
         </div>
 
-        {/* Timeframe Selector */}
+        {/* Timeframe — semester view */}
         <div className="flex gap-2 mb-6">
-          <Button
-            variant={timeframe === 'week' ? 'default' : 'outline'}
-            onClick={() => setTimeframe('week')}
-          >
-            This Week
-          </Button>
-          <Button
-            variant={timeframe === 'month' ? 'default' : 'outline'}
-            onClick={() => setTimeframe('month')}
-          >
-            This Month
-          </Button>
-          <Button
-            variant={timeframe === 'semester' ? 'default' : 'outline'}
-            onClick={() => setTimeframe('semester')}
-          >
-            This Semester
-          </Button>
+          <Button variant="default">This Semester</Button>
         </div>
 
         {/* Top Performers */}

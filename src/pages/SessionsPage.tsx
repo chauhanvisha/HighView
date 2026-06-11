@@ -135,6 +135,7 @@ export default function SessionsPage() {
   }
 
   const [sessionFormError, setSessionFormError] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null)
 
   const handleAddSession = () => {
     if (!sessionFormData.title || !sessionFormData.date || !sessionFormData.time || !sessionFormData.instructor) {
@@ -188,15 +189,13 @@ export default function SessionsPage() {
   }
 
   const handleDeleteSession = (sessionId: number) => {
-    if (window.confirm('Are you sure you want to delete this session?')) {
-      setCustomSessions(prev => prev.filter(s => s.id !== sessionId))
-      // Also remove registrations for this session
-      setSessionRegistrations(prev => {
-        const updated = { ...prev }
-        delete updated[sessionId]
-        return updated
-      })
-    }
+    setCustomSessions(prev => prev.filter(s => s.id !== sessionId))
+    setSessionRegistrations(prev => {
+      const updated = { ...prev }
+      delete updated[sessionId]
+      return updated
+    })
+    setConfirmDeleteId(null)
   }
 
   useEffect(() => {
@@ -520,15 +519,23 @@ export default function SessionsPage() {
                             <Edit className="h-4 w-4" />
                             Edit
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeleteSession(session.id)}
-                            className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
+                          {confirmDeleteId === session.id ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-red-600 font-medium">Delete?</span>
+                              <Button size="sm" variant="outline" onClick={() => handleDeleteSession(session.id)} className="text-red-600 hover:bg-red-50 border-red-300">Yes</Button>
+                              <Button size="sm" variant="outline" onClick={() => setConfirmDeleteId(null)}>No</Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setConfirmDeleteId(session.id)}
+                              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>

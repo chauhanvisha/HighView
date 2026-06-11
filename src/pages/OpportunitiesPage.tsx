@@ -76,6 +76,7 @@ const filterOptions = ['All', 'Job shadows', 'Micro-internships', 'Networking', 
 export default function OpportunitiesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeFilter, setActiveFilter] = useState<typeof filterOptions[number]>('All')
+  const [sortByDeadline, setSortByDeadline] = useState<'asc' | 'desc'>('asc')
   const [userRole, setUserRole] = useState<'staff' | 'student'>('student')
   const [opportunities, setOpportunities] = useState<Opportunity[]>(() => {
     // Load opportunities from localStorage or use mock data
@@ -119,23 +120,29 @@ export default function OpportunitiesPage() {
   // Helper function to check if deadline has passed
   const isExpired = (deadline?: string) => {
     if (!deadline) return false
-    const today = new Date()
-    const deadlineDate = new Date(deadline + ', 2026') // Assuming current year
-    return deadlineDate < today
+    const currentYear = new Date().getFullYear()
+    const deadlineDate = new Date(`${deadline}, ${currentYear}`)
+    return deadlineDate < new Date()
   }
 
-  const filteredOpportunities = opportunities.filter(opp => {
-    const matchesSearch = opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         opp.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         opp.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-    
-    const matchesFilter = activeFilter === 'All' || opp.type === activeFilter
-    
-    // Hide expired opportunities
-    const notExpired = !isExpired(opp.deadline)
-    
-    return matchesSearch && matchesFilter && notExpired
-  })
+  const filteredOpportunities = opportunities
+    .filter(opp => {
+      const matchesSearch = opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           opp.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           opp.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesFilter = activeFilter === 'All' || opp.type === activeFilter
+      const notExpired = !isExpired(opp.deadline)
+      return matchesSearch && matchesFilter && notExpired
+    })
+    .sort((a, b) => {
+      if (!a.deadline && !b.deadline) return 0
+      if (!a.deadline) return 1
+      if (!b.deadline) return -1
+      const currentYear = new Date().getFullYear()
+      const da = new Date(`${a.deadline}, ${currentYear}`).getTime()
+      const db = new Date(`${b.deadline}, ${currentYear}`).getTime()
+      return sortByDeadline === 'asc' ? da - db : db - da
+    })
 
   const openCount = filteredOpportunities.length
 
@@ -150,45 +157,33 @@ export default function OpportunitiesPage() {
             </h1>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center gap-8 mb-6">
-            <div className="text-2xl font-bold text-gray-900">HighView</div>
-            <nav className="flex gap-8">
-              <a href="/" className="text-gray-600 hover:text-gray-900">Home</a>
-              <a href="/explore" className="text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Explore</a>
-              <a href="/profile" className="text-gray-600 hover:text-gray-900">Profile</a>
-            </nav>
-            <div className="ml-auto flex items-center gap-4">
-              {userRole === 'staff' && (
-                <Button 
-                  onClick={() => {
-                    setEditingOpportunity(null)
-                    setFormData({
-                      title: '',
-                      company: '',
-                      type: 'Job shadows',
-                      tags: [],
-                      location: '',
-                      pay: '',
-                      duration: '',
-                      spots: 0,
-                      deadline: '',
-                      isPaid: false,
-                      applicationLink: '',
-                    })
-                    setModalOpen(true)
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Opportunity
-                </Button>
-              )}
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                JR
-              </div>
+          {userRole === 'staff' && (
+            <div className="mb-4">
+              <Button
+                onClick={() => {
+                  setEditingOpportunity(null)
+                  setFormData({
+                    title: '',
+                    company: '',
+                    type: 'Job shadows',
+                    tags: [],
+                    location: '',
+                    pay: '',
+                    duration: '',
+                    spots: 0,
+                    deadline: '',
+                    isPaid: false,
+                    applicationLink: '',
+                  })
+                  setModalOpen(true)
+                }}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Opportunity
+              </Button>
             </div>
-          </div>
+          )}
 
           {/* Search Bar */}
           <div className="relative mb-6">
@@ -228,8 +223,11 @@ export default function OpportunitiesPage() {
           <h2 className="text-lg font-semibold text-gray-900">
             Open Now <span className="text-gray-500 font-normal">{openCount} opportunities</span>
           </h2>
-          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            Sort: Deadline ↓
+          <button
+            onClick={() => setSortByDeadline(prev => prev === 'asc' ? 'desc' : 'asc')}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            Sort: Deadline {sortByDeadline === 'asc' ? '↑' : '↓'}
           </button>
         </div>
 
@@ -418,7 +416,6 @@ export default function OpportunitiesPage() {
                   isPaid: formData.isPaid || false,
                 }
                 setOpportunities([newOpportunity, ...opportunities])
-                console.log('Added new opportunity:', newOpportunity)
               }
               
               setModalOpen(false)

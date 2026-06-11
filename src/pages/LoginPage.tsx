@@ -18,6 +18,18 @@ export default function LoginPage() {
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+
+  const handleForgotPassword = async () => {
+    if (!formData.email) { setError('Enter your email above, then click Forgot password.'); return }
+    try {
+      await authService.resetPassword(formData.email)
+      setResetSent(true)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email')
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -214,12 +226,17 @@ export default function LoginPage() {
                   />
                   <span className="text-sm">Remember me</span>
                 </label>
-                <a href="#" className="text-sm text-primary hover:underline">
+                <button type="button" onClick={handleForgotPassword} className="text-sm text-primary hover:underline">
                   Forgot password?
-                </a>
+                </button>
               </div>
             )}
 
+            {resetSent && (
+              <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm">
+                Password reset email sent — check your inbox.
+              </div>
+            )}
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
                 {error}
