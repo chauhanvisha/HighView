@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Brain, BookOpen, Calendar, Mail, GraduationCap, Clock, Pencil, X, Check } from 'lucide-react'
+import { ArrowLeft, Brain, BookOpen, Calendar, Mail, GraduationCap, Clock, Pencil, X, Check, MapPin, Phone, Link as LinkIcon, Github, Tag } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Card } from '../components/ui/card'
 import { cohortStudents } from '../data/transformStudents'
@@ -85,6 +85,19 @@ interface ProgressOverride {
   sessionAttendance: number
 }
 
+interface StudentSelfProfile {
+  bio: string
+  school: string
+  major: string
+  classYear: string
+  gpa: string
+  location: string
+  phone: string
+  linkedin: string
+  github: string
+  skills: string
+}
+
 export default function StudentProfilePage() {
   const { studentId } = useParams<{ studentId: string }>()
   const navigate = useNavigate()
@@ -94,6 +107,7 @@ export default function StudentProfilePage() {
   const [editOpen, setEditOpen] = useState(false)
   const [overrides, setOverrides] = useState<ProgressOverride | null>(null)
   const [editValues, setEditValues] = useState<ProgressOverride>({ ai: 0, experiential: 0, sessionAttendance: 0 })
+  const [selfProfile, setSelfProfile] = useState<StudentSelfProfile | null>(null)
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}')
@@ -130,6 +144,10 @@ export default function StudentProfilePage() {
         experiential: parsed?.experiential ?? realStudent.experiential,
         sessionAttendance: parsed?.sessionAttendance ?? realStudent.sessionAttendance,
       })
+
+      // Load student's self-created profile data (keyed by email)
+      const selfRaw = localStorage.getItem(`studentProfileData_${realStudent.email}`)
+      setSelfProfile(selfRaw ? JSON.parse(selfRaw) : null)
     } else {
       setStudent(null)
     }
@@ -363,6 +381,111 @@ export default function StudentProfilePage() {
                 </div>
               </div>
             </div>
+          </Card>
+
+          {/* Student Self-Created Profile */}
+          <Card className="p-6 mb-6">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-xl font-semibold">Student Profile</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Information filled out by the student on their own profile page</p>
+              </div>
+            </div>
+
+            {selfProfile ? (
+              <div className="space-y-5">
+                {/* Bio */}
+                {selfProfile.bio && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">About</p>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{selfProfile.bio}</p>
+                  </div>
+                )}
+
+                {/* Education */}
+                {(selfProfile.school || selfProfile.major || selfProfile.classYear || selfProfile.gpa) && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Education</p>
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                        <GraduationCap className="h-5 w-5 text-indigo-600" />
+                      </div>
+                      <div>
+                        {selfProfile.school && <p className="font-semibold text-sm">{selfProfile.school}</p>}
+                        {selfProfile.major && <p className="text-sm text-muted-foreground">{selfProfile.major}</p>}
+                        <div className="flex flex-wrap gap-3 mt-1">
+                          {selfProfile.classYear && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5" />{selfProfile.classYear}
+                            </span>
+                          )}
+                          {selfProfile.gpa && (
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <BookOpen className="h-3.5 w-3.5" />GPA: {selfProfile.gpa}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Skills */}
+                {selfProfile.skills && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <Tag className="h-3.5 w-3.5" /> Skills &amp; Interests
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {selfProfile.skills.split(',').map(s => s.trim()).filter(Boolean).map(skill => (
+                        <span key={skill} className="px-3 py-1 rounded-full text-sm bg-blue-50 text-blue-700 border border-blue-200 font-medium">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact */}
+                {(selfProfile.location || selfProfile.phone || selfProfile.linkedin || selfProfile.github) && (
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Contact</p>
+                    <div className="space-y-1.5">
+                      {selfProfile.location && (
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />{selfProfile.location}
+                        </div>
+                      )}
+                      {selfProfile.phone && (
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <Phone className="h-4 w-4 text-muted-foreground shrink-0" />{selfProfile.phone}
+                        </div>
+                      )}
+                      {selfProfile.linkedin && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <LinkIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <a href={selfProfile.linkedin.startsWith('http') ? selfProfile.linkedin : `https://${selfProfile.linkedin}`}
+                            target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                            {selfProfile.linkedin}
+                          </a>
+                        </div>
+                      )}
+                      {selfProfile.github && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Github className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <a href={selfProfile.github.startsWith('http') ? selfProfile.github : `https://github.com/${selfProfile.github}`}
+                            target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                            {selfProfile.github}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">This student has not filled out their profile yet.</p>
+            )}
           </Card>
 
           {/* Session Details */}

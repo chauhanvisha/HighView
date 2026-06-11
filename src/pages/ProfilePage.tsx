@@ -49,9 +49,11 @@ const DEFAULT_STUDENT_PROFILE: StudentProfileData = {
 
 const CLASS_YEARS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate']
 
-function loadStudentProfile(): StudentProfileData {
+function loadStudentProfile(email?: string): StudentProfileData {
   try {
-    const raw = localStorage.getItem('studentProfileData')
+    // Try user-specific key first, fall back to legacy generic key
+    const raw = (email ? localStorage.getItem(`studentProfileData_${email}`) : null)
+      ?? localStorage.getItem('studentProfileData')
     return raw ? { ...DEFAULT_STUDENT_PROFILE, ...JSON.parse(raw) } : DEFAULT_STUDENT_PROFILE
   } catch {
     return DEFAULT_STUDENT_PROFILE
@@ -60,7 +62,8 @@ function loadStudentProfile(): StudentProfileData {
 
 // ── Student Profile Card ──────────────────────────────────────────────────
 function StudentProfileSection({ user }: { user: any }) {
-  const [profile, setProfile] = useState<StudentProfileData>(loadStudentProfile)
+  const profileKey = `studentProfileData_${user.email}`
+  const [profile, setProfile] = useState<StudentProfileData>(() => loadStudentProfile(user.email))
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<StudentProfileData>(profile)
 
@@ -68,7 +71,7 @@ function StudentProfileSection({ user }: { user: any }) {
   const closeEdit = () => setEditing(false)
   const saveEdit = () => {
     setProfile(draft)
-    localStorage.setItem('studentProfileData', JSON.stringify(draft))
+    localStorage.setItem(profileKey, JSON.stringify(draft))
     setEditing(false)
   }
 
