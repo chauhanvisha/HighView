@@ -1,9 +1,8 @@
+import { supabase } from '../lib/supabase'
 import { addStudent } from './api'
 
-const AUTH_API = import.meta.env.VITE_AUTH_API_URL as string
-
 export interface User {
-  id: number
+  id: string
   email: string
   name: string
   type: 'student' | 'staff' | 'admin'
@@ -30,40 +29,50 @@ export interface LoginData {
   role?: string
 }
 
-class AuthService {
-  private token: string | null = null
-
-  constructor() {
-    this.token = localStorage.getItem('access_token')
+// Map Supabase user → our User shape (keeps all pages working unchanged)
+function mapUser(supabaseUser: { id: string; email?: string; user_metadata?: Record<string, string> }): User {
+  const meta = supabaseUser.user_metadata ?? {}
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email ?? '',
+    name: meta.full_name ?? supabaseUser.email?.split('@')[0] ?? '',
+    type: (meta.role as User['type']) ?? 'student',
+    institution: meta.institution,
   }
+}
 
+const STAFF_ALIASES = new Set(['staff', 'teacher'])
+
+class AuthService {
   async signup(data: SignupData): Promise<AuthResponse> {
-    const res = await fetch(`${AUTH_API}/api/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          full_name: data.fullName,
+          role: data.role,
+          institution: data.institution ?? '',
+        },
+      },
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.detail || 'Signup failed')
-    }
-    const authData: AuthResponse = await res.json()
 
-    this.token = authData.access_token
-    localStorage.setItem('access_token', authData.access_token)
-    localStorage.setItem('user', JSON.stringify(authData.user))
-    localStorage.setItem('isAuthenticated', 'true')
+    if (error) throw new Error(error.message)
+    if (!authData.user) throw new Error('Signup failed — please try again')
 
-    // Persist student enrollment to database (fire-and-forget)
+    const user = mapUser(authData.user)
+    this._persist(user, authData.session?.access_token ?? '')
+
+    // Persist student enrollment to DynamoDB (fire-and-forget)
     if (data.role === 'student') {
       const enrolledAt = new Date().toISOString()
-      const record_id = `STU-${authData.user.id}`
+      const record_id = `STU-${user.id}`
       addStudent({
         record_id,
         student_id: record_id,
         student_name: data.fullName,
         student_email: data.email,
-        department: data.institution || '',
+        department: data.institution ?? '',
         class_name: '',
         teacher_name: '',
         topic: '',
@@ -78,77 +87,88 @@ class AuthService {
       }).catch(() => { /* non-blocking */ })
     }
 
-    return authData
+    return { access_token: authData.session?.access_token ?? '', token_type: 'bearer', user }
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
-    const res = await fetch(`${AUTH_API}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.detail || 'Login failed')
+
+    if (error) throw new Error(error.message)
+    if (!authData.user) throw new Error('Login failed — please try again')
+
+    const user = mapUser(authData.user)
+
+    // Enforce role separation: a student can't log in on the staff page and vice‑versa
+    if (data.role) {
+      const requestedIsStaff = STAFF_ALIASES.has(data.role)
+      const actualIsStaff = STAFF_ALIASES.has(user.type)
+      if (requestedIsStaff !== actualIsStaff) {
+        await supabase.auth.signOut()
+        const expected = requestedIsStaff ? 'staff' : 'student'
+        throw new Error(`This account is registered as '${user.type}'. Please use the ${expected} login.`)
+      }
     }
-    const authData: AuthResponse = await res.json()
 
-    this.token = authData.access_token
-    localStorage.setItem('access_token', authData.access_token)
-    localStorage.setItem('user', JSON.stringify(authData.user))
-    localStorage.setItem('isAuthenticated', 'true')
-
-    return authData
+    this._persist(user, authData.session.access_token)
+    return { access_token: authData.session.access_token, token_type: 'bearer', user }
   }
 
   async getCurrentUser(): Promise<User> {
-    if (!this.token) throw new Error('Not authenticated')
-    const res = await fetch(`${AUTH_API}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${this.token}` },
-    })
-    if (!res.ok) throw new Error('Failed to get current user')
-    return res.json()
+    const { data, error } = await supabase.auth.getUser()
+    if (error || !data.user) throw new Error('Not authenticated')
+    return mapUser(data.user)
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    if (!this.token) throw new Error('Not authenticated')
-    const res = await fetch(`${AUTH_API}/api/auth/change-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    const user = this.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    // Re-authenticate to verify the current password before allowing the change
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
     })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.detail || 'Password change failed')
-    }
+    if (verifyError) throw new Error('Current password is incorrect')
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw new Error(error.message)
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) throw new Error(error.message)
   }
 
   logout(): void {
-    this.token = null
+    supabase.auth.signOut()
     localStorage.removeItem('access_token')
     localStorage.removeItem('user')
     localStorage.removeItem('isAuthenticated')
   }
 
   isAuthenticated(): boolean {
-    return !!this.token && localStorage.getItem('isAuthenticated') === 'true'
+    return localStorage.getItem('isAuthenticated') === 'true'
   }
 
   getToken(): string | null {
-    return this.token
+    return localStorage.getItem('access_token')
   }
 
   getUser(): User | null {
-    const userStr = localStorage.getItem('user')
-    if (!userStr) return null
-    try {
-      return JSON.parse(userStr)
-    } catch {
-      return null
-    }
+    const raw = localStorage.getItem('user')
+    if (!raw) return null
+    try { return JSON.parse(raw) } catch { return null }
+  }
+
+  private _persist(user: User, token: string): void {
+    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('access_token', token)
+    localStorage.setItem('isAuthenticated', 'true')
   }
 }
 
