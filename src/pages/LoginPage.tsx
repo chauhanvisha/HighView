@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [checkEmail, setCheckEmail] = useState(false)
 
   const handleForgotPassword = async () => {
     if (!formData.email) { setError('Enter your email above, then click Forgot password.'); return }
@@ -50,22 +51,42 @@ export default function LoginPage() {
         })
       } else {
         // Signup
-        await authService.signup({
+        const result = await authService.signup({
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
           role: formData.role,
           institution: '',
         })
+        if (result.needsEmailConfirmation) {
+          setCheckEmail(true)
+          return
+        }
       }
-      
-      // Redirect to home page after successful login/signup
+
       window.location.href = '/'
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (checkEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-8">
+        <div className="max-w-md w-full text-center space-y-4">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+            <Mail className="h-8 w-8 text-blue-600" />
+          </div>
+          <h1 className="text-2xl font-bold">Check your email</h1>
+          <p className="text-muted-foreground">
+            We sent a confirmation link to <strong>{formData.email}</strong>. Click it to activate your account and log in.
+          </p>
+          <p className="text-sm text-muted-foreground">Didn't get it? Check your spam folder.</p>
+        </div>
+      </div>
+    )
   }
 
   return (

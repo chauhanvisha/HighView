@@ -13,6 +13,7 @@ export interface AuthResponse {
   access_token: string
   token_type: string
   user: User
+  needsEmailConfirmation?: boolean
 }
 
 export interface SignupData {
@@ -61,7 +62,12 @@ class AuthService {
     if (!authData.user) throw new Error('Signup failed — please try again')
 
     const user = mapUser(authData.user)
-    this._persist(user, authData.session?.access_token ?? '')
+    const needsEmailConfirmation = !authData.session
+
+    // Only persist session if email is already confirmed (session exists)
+    if (!needsEmailConfirmation) {
+      this._persist(user, authData.session!.access_token)
+    }
 
     // Persist student enrollment to DynamoDB (fire-and-forget)
     if (data.role === 'student') {
@@ -87,7 +93,7 @@ class AuthService {
       }).catch(() => { /* non-blocking */ })
     }
 
-    return { access_token: authData.session?.access_token ?? '', token_type: 'bearer', user }
+    return { access_token: authData.session?.access_token ?? '', token_type: 'bearer', user, needsEmailConfirmation }
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
