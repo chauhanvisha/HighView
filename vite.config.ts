@@ -13,12 +13,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://d25zzadgyf.execute-api.us-east-1.amazonaws.com',
+        target: process.env.VITE_API_TARGET || 'https://d25zzadgyf.execute-api.us-east-1.amazonaws.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/prod'),
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            proxyReq.setHeader('x-api-key', 'ql5H2UTRWM6Xgn43P33UA8cJYFrtg8cp3HduSkDQ');
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            const apiKey = process.env.VITE_API_KEY
+            if (apiKey) proxyReq.setHeader('x-api-key', apiKey)
           });
         },
       },
