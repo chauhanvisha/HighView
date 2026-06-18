@@ -1,8 +1,14 @@
 {
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/chat/stream.ts": {
+      "memory": 1024,
+      "maxDuration": 300
+    },
+    "api/chat/summarize.ts": {
+      "maxDuration": 60
     }
-  ]
+  }
 }

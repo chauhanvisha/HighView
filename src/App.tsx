@@ -20,6 +20,7 @@ import PrivacyPage from './pages/PrivacyPage'
 import ProfilePage from './pages/ProfilePage'
 import AttendanceTrackingPage from './pages/AttendanceTrackingPage'
 import AddOpportunityPage from './pages/AddOpportunityPage'
+import AiCoachPage from './pages/AiCoachPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -42,6 +43,7 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/courses/ai/:scenario" element={<AiCoachPage />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/attendance" element={
           <ProtectedRoute allowedRoles={['staff', 'admin']}>
