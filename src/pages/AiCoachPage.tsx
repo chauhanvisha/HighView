@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Send, Plus, Trash2, Download } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import {
-  streamChat, summarizeSession,
+  streamChat,
   getChatSessions, createChatSession, getChatSessionMessages,
   updateChatSession, deleteChatSession, ChatSession, Message,
 } from '../services/aiCoachApi'
