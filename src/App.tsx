@@ -43,7 +43,11 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/courses" element={<CoursesPage />} />
-        <Route path="/courses/ai/:scenario" element={<AiCoachPage />} />
+        <Route path="/courses/ai/:scenario" element={
+          <ProtectedRoute allowedRoles={['student', 'staff', 'admin']}>
+            <AiCoachPage />
+          </ProtectedRoute>
+        } />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/attendance" element={
           <ProtectedRoute allowedRoles={['staff', 'admin']}>
