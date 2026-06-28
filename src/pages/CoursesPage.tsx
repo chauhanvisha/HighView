@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, Clock, Users, Download, BarChart3, PieChart, Activity, Award, Calendar, TrendingUp, X, CheckCircle, XCircle, GraduationCap, Sparkles, CheckSquare2 } from 'lucide-react'
+import { BookOpen, Clock, Users, Download, BarChart3, PieChart, Activity, Award, Calendar, TrendingUp, X, CheckCircle, XCircle, GraduationCap, Sparkles, CheckSquare2, Brain } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { SemesterSelector } from '../components/SemesterSelector'
@@ -113,6 +114,7 @@ function saveRegistrations(ids: string[]) {
 
 // ── Student Courses View ───────────────────────────────────────────────────
 function StudentCoursesView() {
+  const navigate = useNavigate()
   const [registrations, setRegistrations] = useState<string[]>(getRegistrations)
   const [tab, setTab] = useState<'all' | 'upcoming'>('all')
 
@@ -136,6 +138,49 @@ function StudentCoursesView() {
           <h1 className="text-3xl font-bold mb-1">Courses</h1>
           <p className="text-muted-foreground">Track your enrolled courses and discover new ones</p>
         </motion.div>
+
+        {/* ── AI Coach Card ──────────────────────────────────────────────── */}
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-600" />
+            AI Coaching
+          </h2>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+            <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-purple-500"
+              onClick={() => navigate('/courses/ai/interview')}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
+                    <span className="text-2xl">🎓</span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">HighView AI Coach</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Practice interviews, master your inbox, and write professional emails — with real-time AI feedback.
+                    </p>
+                    <div className="flex gap-3 mt-3">
+                      <button onClick={(e) => { e.stopPropagation(); navigate('/courses/ai/interview') }}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                        🎯 Interview Prep
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); navigate('/courses/ai/inbox') }}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">
+                        📥 Inbox Reset
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); navigate('/courses/ai/email') }}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors">
+                        ✉️ Email Writing
+                      </button>
+                    </div>
+                  </div>
+                  <div className="hidden sm:block text-right">
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">AI-Powered</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </section>
 
         {/* ── My Courses ─────────────────────────────────────────────────── */}
         <section className="mb-10">
