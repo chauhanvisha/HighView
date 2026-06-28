@@ -3,12 +3,9 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/chat/stream.ts": {
-      "memory": 1024,
-      "maxDuration": 300
-    },
-    "api/chat/summarize.ts": {
-      "maxDuration": 60
+    "api/**/*.ts": {
+      "maxDuration": 300,
+      "includeFiles": "api/_lib/**"
     }
   }
 }
