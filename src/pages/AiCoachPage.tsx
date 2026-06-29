@@ -170,8 +170,8 @@ export default function AiCoachPage() {
     <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
       <div className="shrink-0 bg-white border-b px-4 h-14 flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/courses')}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Courses
+        <Button variant="ghost" size="sm" onClick={() => navigate('/courses/ai')}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
         <span className="text-xl">{meta.emoji}</span>
         <h1 className="font-bold text-gray-800">{meta.title}</h1>
