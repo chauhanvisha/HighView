@@ -147,7 +147,7 @@ function StudentCoursesView() {
           </h2>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow border-l-4 border-l-purple-500"
-              onClick={() => navigate('/courses/ai/interview')}>
+              onClick={() => navigate('/courses/ai')}>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shrink-0">
@@ -159,7 +159,7 @@ function StudentCoursesView() {
                       Practice interviews, master your inbox, and write professional emails — with real-time AI feedback.
                     </p>
                     <div className="flex gap-3 mt-3">
-                      <button onClick={(e) => { e.stopPropagation(); navigate('/courses/ai/interview') }}
+                      <button onClick={(e) => { e.stopPropagation(); navigate('/courses/ai') }}
                         className="px-3 py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
                         🎯 Interview Prep
                       </button>
